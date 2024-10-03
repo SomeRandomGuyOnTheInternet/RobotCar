@@ -79,24 +79,9 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
     endif()
 endif()
 
-# NEED REPLACE
-
-# Add subdirectories:
-# add_subdirectory(subdirectory)
-
-# Add raw executable:
-add_executable(robotcar
-    main.c
-)
-
-# pull in common dependencies
-target_link_libraries(robotcar 
-        pico_stdlib
-        pico_cyw43_arch_none
-)
-
-pico_enable_stdio_usb(robotcar 1)
-pico_enable_stdio_uart(robotcar 1)
-
-# create map/bin/hex file etc.
-pico_add_extra_outputs(robotcar)
+if (NOT PICO_NO_HARDWARE)
+    add_subdirectory(main)
+    add_subdirectory(motor)
+    add_subdirectory(ultrasonic)
+    add_subdirectory(encoder)
+endif ()
