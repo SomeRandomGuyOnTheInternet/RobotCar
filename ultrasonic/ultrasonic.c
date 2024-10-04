@@ -31,6 +31,17 @@ kalman_state *kalman_init(double q, double r, double p, double initial_value)
     return state;
 }
 
+void kalman_update(kalman_state *state, double measurement)
+{
+    // Prediction update
+    state->p = state->p + state->q;
+
+    // Measurement update
+    state->k = state->p / (state->p + state->r);
+    state->x = state->x + state->k * (measurement - state->x);
+    state->p = (1 - state->k) * state->p;
+}
+
 void get_echo_pulse(uint gpio, uint32_t events)
 {
     if (gpio == ECHOPIN && events & GPIO_IRQ_EDGE_RISE)
@@ -45,24 +56,13 @@ void get_echo_pulse(uint gpio, uint32_t events)
     }
 }
 
-void kalman_update(kalman_state *state, double measurement)
-{
-    // Prediction update
-    state->p = state->p + state->q;
-
-    // Measurement update
-    state->k = state->p / (state->p + state->r);
-    state->x = state->x + state->k * (measurement - state->x);
-    state->p = (1 - state->k) * state->p;
-}
-
 void setup_ultrasonic_pins()
 {
     gpio_init(TRIGPIN);
     gpio_init(ECHOPIN);
     gpio_set_dir(TRIGPIN, GPIO_OUT);
     gpio_set_dir(ECHOPIN, GPIO_IN);
-    // gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &get_echo_pulse);
+    gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &get_echo_pulse);
 }
 
 uint64_t get_pulse()

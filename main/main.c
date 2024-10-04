@@ -64,7 +64,7 @@ void test()
         for (int i = 0; i < 20; i++)
         {
             cm = get_cm(state);
-            obstacle_detected = cm < 50;
+            obstacle_detected = cm < 25;
         }
 
         if (obstacle_detected == true)
@@ -84,6 +84,7 @@ int main()
     // Init all required
     init_all();
     init_interrupts();
+    
     test();
 
     return 0;
