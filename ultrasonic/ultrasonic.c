@@ -89,24 +89,22 @@ double get_cm(kalman_state *state)
     return state->x;
 }
 
-/*
-int main()
-{
-    // Driver code to run ultrasonic sensor
-    double cm;
-    stdio_init_all();
-    printf("Setting up ultrasonic pins\n");
-    setupUltrasonicPins();
-    kalman_state *state = kalman_init(1, 100, 0, 0);
-    sleep_ms(1000);
-    while (true)
-    {
-        for (int i = 0; i < 20; i++)
-        {
-            cm = getCm(state);
-        }
-        printf("Distance: %.2lf\n", cm);
-        sleep_ms(500);
-    }
-}
-*/
+// int main()
+// {
+//     // Driver code to run ultrasonic sensor
+//     double cm;
+//     stdio_init_all();
+//     printf("Setting up ultrasonic pins\n");
+//     setup_ultrasonic_pins();
+//     kalman_state *state = kalman_init(1, 100, 0, 0);
+//     sleep_ms(1000);
+//     while (true)
+//     {
+//         for (int i = 0; i < 20; i++)
+//         {
+//             cm = get_cm(state);
+//         }
+//         printf("Distance: %.2lf\n", cm);
+//         sleep_ms(500);
+//     }
+// }
