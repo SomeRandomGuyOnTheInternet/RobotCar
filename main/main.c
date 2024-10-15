@@ -71,6 +71,7 @@ void test()
 
         // Read ultrasonic sensor
         cm = get_cm(state);
+        cm = 9999;
         obstacle_detected = cm < 25;
 
         // Control motor based on obstacle detection
@@ -85,36 +86,28 @@ void test()
             gy511_read_accel(&accel_x, &accel_y, &accel_z);
             printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
 
-            // Motor control logic based on accelerometer data
-            int motor_speed = 0;
-            int turn_speed = 0;
-
             // Adjust speed based on Y-axis tilt
             if (accel_y > 5000) // Forward tilt
             {
-                motor_speed = 3125; // Adjust forward speed
+                move_motor(2500, 2500);
             }
             else if (accel_y < -5000) // Backward tilt
             {
-                motor_speed = -3125; // Adjust backward speed
+                reverse_motor(2500, 2500);
             }
 
             // Adjust turning based on X-axis tilt
             if (accel_x > 5000) // Right tilt
             {
-                turn_speed = 2000; // Adjust turning speed to right
+                move_motor(2500, -2500);
             }
             else if (accel_x < -5000) // Left tilt
             {
-                turn_speed = -2000; // Adjust turning speed to left
+                move_motor(-2500, 2500);
             }
-
-            // Apply motor speeds
-            move_motor(motor_speed + turn_speed, motor_speed - turn_speed);
-            printf("Moving with speed: %d and turning speed: %d\n", motor_speed, turn_speed);
         }
 
-        printf("Distance: %.2lf\n", cm);
+        // printf("Distance: %.2lf\n", cm);
         sleep_ms(500); // Delay between readings
     }
 }
