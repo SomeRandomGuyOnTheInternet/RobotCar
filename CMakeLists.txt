@@ -28,9 +28,9 @@ project(robotcar C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-if (PICO_SDK_VERSION_STRING VERSION_LESS "2.0.0")
-    message(FATAL_ERROR "Raspberry Pi Pico SDK version 2.0.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
-endif()
+# if (PICO_SDK_VERSION_STRING VERSION_LESS "2.0.0")
+#     message(FATAL_ERROR "Raspberry Pi Pico SDK version 2.0.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
+# endif()
 
 set(MAIN_PATH ${PROJECT_SOURCE_DIR})
 
@@ -80,6 +80,7 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
 endif()
 
 if (NOT PICO_NO_HARDWARE)
+    add_subdirectory(barcode)
     add_subdirectory(main)
     add_subdirectory(motor)
     add_subdirectory(ultrasonic)
