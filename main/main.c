@@ -9,6 +9,7 @@
 #include "ultrasonic.h"
 #include "encoder.h"
 #include "motor.h"
+#include "gy511.h"
 
 // Function that is invoked upon a change in right IR sensor's input
 void callbacks(uint gpio, uint32_t events)
@@ -41,6 +42,11 @@ void init_all()
     setup_ultrasonic_pins();
     printf("Ultrasonic pins initialised\n");
     sleep_ms(500);
+
+    gy511_init();
+    printf("Magnetometer pins initialised\n");
+    sleep_ms(500);
+
 }
 
 // Function to init all interrupts
@@ -57,27 +63,55 @@ void test()
     bool obstacle_detected = false;
     double cm;
     kalman_state *state = kalman_init(1, 100, 0, 0);
-    
+    int16_t accel_x, accel_y, accel_z;
+
     while (1)
     {
-        sleep_ms(500);
-        for (int i = 0; i < 20; i++)
-        {
-            cm = get_cm(state);
-            obstacle_detected = cm < 25;
-        }
+        sleep_ms(100); // Reduced sleep for more responsive readings
 
-        if (obstacle_detected == true)
+        // Read ultrasonic sensor
+        cm = get_cm(state);
+        cm = 9999;
+        obstacle_detected = cm < 25;
+
+        // Control motor based on obstacle detection
+        if (obstacle_detected)
         {
             printf("Obstacle detected\n");
             stop_motor();
-        } else {
-            move_motor(3125, 3125);
+        }
+        else 
+        {
+            // Read accelerometer data
+            gy511_read_accel(&accel_x, &accel_y, &accel_z);
+            printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
+
+            // Adjust speed based on Y-axis tilt
+            if (accel_y > 5000) // Forward tilt
+            {
+                move_motor(2500, 2500);
+            }
+            else if (accel_y < -5000) // Backward tilt
+            {
+                reverse_motor(2500, 2500);
+            }
+
+            // Adjust turning based on X-axis tilt
+            if (accel_x > 5000) // Right tilt
+            {
+                move_motor(2500, -2500);
+            }
+            else if (accel_x < -5000) // Left tilt
+            {
+                move_motor(-2500, 2500);
+            }
         }
 
-        printf("Distance: %.2lf\n", cm);
+        // printf("Distance: %.2lf\n", cm);
+        sleep_ms(500); // Delay between readings
     }
 }
+
 
 int main()
 {
