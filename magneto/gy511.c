@@ -1,4 +1,5 @@
 #include "gy511.h"
+// #include "motor.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -32,18 +33,51 @@ void gy511_read_accel(int16_t *x, int16_t *y, int16_t *z) {
 }
 
 // Similarly, define gy511_read_gyro and gy511_read_mag
-
 // int main() {
+//     // Initialise standard I/O
 //     stdio_init_all();
+//     sleep_ms(1000);
+
+//     // Initialise motor GPIO pins and PWM
+//     init_motor_setup();
+//     init_motor_pwm();
+
+//     // Initialise ultrasonic sensor
 //     gy511_init();
+//     printf("Magnetometer pins initialised\n");
+//     sleep_ms(500);
 
 //     int16_t accel_x, accel_y, accel_z;
 
-//     while (true) {
+//     while (1)
+//     {
+//         sleep_ms(100); // Reduced sleep for more responsive readings
+
+//         // Read accelerometer data
 //         gy511_read_accel(&accel_x, &accel_y, &accel_z);
 //         printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
+
+//         // Adjust speed based on Y-axis tilt
+//         if (accel_y > 5000) // Forward tilt
+//         {
+//             move_motor(2500, 2500);
+//         }
+//         else if (accel_y < -5000) // Backward tilt
+//         {
+//             reverse_motor(2500, 2500);
+//         }
+
+//         // Adjust turning based on X-axis tilt
+//         if (accel_x > 5000) // Right tilt
+//         {
+//             move_motor(2500, -2500);
+//         }
+//         else if (accel_x < -5000) // Left tilt
+//         {
+//             move_motor(-2500, 2500);
+//         }
+
+//         // printf("Distance: %.2lf\n", cm);
 //         sleep_ms(500); // Delay between readings
 //     }
-
-//     return 0;
 // }

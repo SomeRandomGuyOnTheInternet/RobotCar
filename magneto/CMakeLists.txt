@@ -1,17 +1,22 @@
-# Add the executable
 add_executable(gy511
     gy511.c
-    # Optionally include any other source files needed
 )
+
+target_include_directories(gy511 PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/../motor
+)
+
 target_link_libraries(gy511
     pico_stdlib
     hardware_i2c
+    motor_lib
 )
 
 add_library(gy511_lib
-        gy511.c
-        gy511.h
-        )
+    gy511.c
+    gy511.h
+)
 
 # Link the necessary libraries
 target_link_libraries(gy511_lib

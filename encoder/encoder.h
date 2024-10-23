@@ -16,18 +16,20 @@
 #define ENCODER_CIRCUMFERENCE 8.5
 #define WHEEL_CIRCUMFERENCE 22
 
+#define LEFT_WHEEL 0
+#define RIGHT_WHEEL 1
+
 // External variables
-extern volatile bool complete_movement;
 extern volatile uint32_t oscillation;
 extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
 
 // Functions for encoders
+void encoder_init();
+bool encoder_1s_callback();
+void encoder_pulse_callback(uint gpio, uint32_t events);
+void read_encoder_pulse(uint gpio, uint32_t events);
+void start_tracking();
 void get_speed_and_distance(int encoder, uint32_t pulse_count);
-void encoder_pulse(uint gpio);
-bool encoder_callback();
-void init_encoder_setup();
-uint32_t get_grids_moved(bool reset);
-void start_tracking(int targetGrids);
 
 #endif

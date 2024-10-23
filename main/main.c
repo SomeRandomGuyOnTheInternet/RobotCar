@@ -11,14 +11,19 @@
 #include "motor.h"
 #include "gy511.h"
 
-// Function that is invoked upon a change in right IR sensor's input
 void callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
     {
     // Ultrasonic callback
     case ECHOPIN:
-        get_echo_pulse(ECHOPIN, events);
+        ultrasonic_interrupt_callback(ECHOPIN, events);
+        break;
+    case L_ENCODER_OUT:
+        encoder_pulse_callback(L_ENCODER_OUT, events);
+        break;
+    case R_ENCODER_OUT:
+        encoder_pulse_callback(R_ENCODER_OUT, events);
         break;
     default:
         break;
@@ -39,14 +44,19 @@ void init_all()
     sleep_ms(500);
 
     // Initialise ultrasonic sensor
-    setup_ultrasonic_pins();
+    ultrasonic_init();
     printf("Ultrasonic pins initialised\n");
     sleep_ms(500);
 
+    // Initialise ultrasonic sensor
     gy511_init();
     printf("Magnetometer pins initialised\n");
     sleep_ms(500);
 
+    // Initialise encoder sensor
+    encoder_init();
+    printf("Encoder pins initialised\n");
+    sleep_ms(500);
 }
 
 // Function to init all interrupts
@@ -59,56 +69,29 @@ void init_interrupts()
 
 void test()
 {
-    printf("Starting test\n");
-    bool obstacle_detected = false;
-    double cm;
-    kalman_state *state = kalman_init(1, 100, 0, 0);
-    int16_t accel_x, accel_y, accel_z;
+    // Set up a timer to generate interrupts every second
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
 
-    while (1)
-    {
-        sleep_ms(100); // Reduced sleep for more responsive readings
+    while (1) {
+        // Run at half duty cycle
+        move_motor(1563, 1563);
+        sleep_ms(5000);
 
-        // Read ultrasonic sensor
-        cm = get_cm(state);
-        cm = 9999;
-        obstacle_detected = cm < 25;
+        // Turn left at full duty cycle
+        move_motor(3165, 3165);
+        turn_motor(1);
+        sleep_ms(250);
 
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            printf("Obstacle detected\n");
-            stop_motor();
-        }
-        else 
-        {
-            // Read accelerometer data
-            gy511_read_accel(&accel_x, &accel_y, &accel_z);
-            printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
+        // Turn right at full duty cycle
+        move_motor(3165, 3165);
+        turn_motor(0);
+        sleep_ms(250);
 
-            // Adjust speed based on Y-axis tilt
-            if (accel_y > 5000) // Forward tilt
-            {
-                move_motor(2500, 2500);
-            }
-            else if (accel_y < -5000) // Backward tilt
-            {
-                reverse_motor(2500, 2500);
-            }
-
-            // Adjust turning based on X-axis tilt
-            if (accel_x > 5000) // Right tilt
-            {
-                move_motor(2500, -2500);
-            }
-            else if (accel_x < -5000) // Left tilt
-            {
-                move_motor(-2500, 2500);
-            }
-        }
-
-        // printf("Distance: %.2lf\n", cm);
-        sleep_ms(500); // Delay between readings
+        // Run at 32% duty cycle
+        // moveMotor(1000);
+        move_motor(1000, 1000);
+        sleep_ms(5000);
     }
 }
 
