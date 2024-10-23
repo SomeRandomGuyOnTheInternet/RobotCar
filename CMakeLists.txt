@@ -80,9 +80,10 @@ if (PICO_CYW43_SUPPORTED) # set by PICO_BOARD=pico_w
 endif()
 
 if (NOT PICO_NO_HARDWARE)
-    add_subdirectory(barcode)
+    add_subdirectory(ir)
     add_subdirectory(main)
     add_subdirectory(motor)
-    add_subdirectory(ultrasonic)
     add_subdirectory(encoder)
+    add_subdirectory(ultrasonic)
+    add_subdirectory(wifi)
 endif ()

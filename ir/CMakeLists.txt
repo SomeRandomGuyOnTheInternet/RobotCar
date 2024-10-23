@@ -1,0 +1,3 @@
+add_subdirectory(barcode)
+add_subdirectory(barcodeADC)
+add_subdirectory(surface_contrast)
