@@ -12,9 +12,9 @@
 #define R_ENCODER_OUT 16 // GPIO pin for R encoder output
 
 // Define encoder disk specs
-#define ENCODER_NOTCH 20
+#define ENCODER_NOTCH 20.0
 #define ENCODER_CIRCUMFERENCE 8.5
-#define WHEEL_CIRCUMFERENCE 22
+#define WHEEL_CIRCUMFERENCE 22.0
 
 #define LEFT_WHEEL 0
 #define RIGHT_WHEEL 1

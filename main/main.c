@@ -15,15 +15,17 @@ void callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
     {
-    // Ultrasonic callback
-    case ECHOPIN:
-        ultrasonic_interrupt_callback(ECHOPIN, events);
-        break;
+    // Left wheel encoder callback
     case L_ENCODER_OUT:
         encoder_pulse_callback(L_ENCODER_OUT, events);
         break;
+    // Right wheel encoder callback
     case R_ENCODER_OUT:
         encoder_pulse_callback(R_ENCODER_OUT, events);
+        break;
+    // Ultrasonic callback
+    case ECHOPIN:
+        ultrasonic_interrupt_callback(ECHOPIN, events);
         break;
     default:
         break;
@@ -65,43 +67,64 @@ void init_interrupts()
     printf("Interrupts initialised\n");
     // Initialise interrupts for needed sensors
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
+    gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
+    gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
+}
+
+double normalise(double value, double min, double max) {
+   // Ensure value is within bounds
+    if (value < min) value = min;
+    if (value > max) value = max;
+
+    return (value - min) / (max - min);
 }
 
 void test()
 {
-    // Set up a timer to generate interrupts every second
+    printf("Starting test\n");
+
     struct repeating_timer timer;
     add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
 
-    while (1) {
-        // Run at half duty cycle
-        move_motor(1563, 1563);
-        sleep_ms(5000);
+    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
 
-        // Turn left at full duty cycle
-        move_motor(3165, 3165);
-        turn_motor(1);
-        sleep_ms(250);
+    bool obstacle_detected = false;
+    double cm;
 
-        // Turn right at full duty cycle
-        move_motor(3165, 3165);
-        turn_motor(0);
-        sleep_ms(250);
+    while (1)
+    {
+        sleep_ms(250); // Reduced sleep for more responsive readings
 
-        // Run at 32% duty cycle
-        // moveMotor(1000);
-        move_motor(1000, 1000);
-        sleep_ms(5000);
+        // Read ultrasonic sensor
+        cm = get_cm(state);
+        // cm = 99;
+        obstacle_detected = cm < MIN_CM;
+
+        printf("----\n");
+        // Control motor based on obstacle detection
+        if (obstacle_detected)
+        {
+            printf("Obstacle detected\n");
+            stop_motor();
+        }
+        else
+        {
+            double normalised = normalise(cm, MIN_CM, MAX_CM);
+            int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
+            move_motor(normalised_duty_cycle, normalised_duty_cycle);
+        }
+
+        printf("Obstacle distance: %.2lf cm\n", cm);
+        printf("----\n");
     }
 }
-
 
 int main()
 {
     // Init all required
     init_all();
     init_interrupts();
-    
+
     test();
 
     return 0;

@@ -7,8 +7,11 @@
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
 
-#define TRIGPIN 26
-#define ECHOPIN 27
+#define TRIGPIN 27
+#define ECHOPIN 26
+
+#define MIN_CM 10
+#define MAX_CM 100
 
 typedef struct kalman_state_ kalman_state;
 extern volatile bool obstacle_detected;

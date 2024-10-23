@@ -49,7 +49,6 @@ void ultrasonic_init()
     gpio_init(ECHOPIN);
     gpio_set_dir(TRIGPIN, GPIO_OUT);
     gpio_set_dir(ECHOPIN, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &ultrasonic_interrupt_callback);
 }
 
 void ultrasonic_interrupt_callback(uint gpio, uint32_t events)
@@ -71,7 +70,6 @@ void set_start_time(uint gpio, uint32_t events)
         // Rising edge detected, start the timer
         start_time = get_absolute_time();
     }
-    
 }
 
 void set_pulse_length(uint gpio, uint32_t events)
