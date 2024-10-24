@@ -90,6 +90,7 @@ void test()
 
     bool obstacle_detected = false;
     double cm;
+    double prev_cm;
 
     while (1)
     {
@@ -114,8 +115,11 @@ void test()
             move_motor(normalised_duty_cycle, normalised_duty_cycle);
         }
 
-        printf("Obstacle distance: %.2lf cm\n", cm);
-        printf("----\n");
+        if (cm != prev_cm) {
+            printf("Obstacle distance: %.2lf cm\n", cm);
+            printf("----\n");
+            prev_cm = cm;
+        }
     }
 }
 

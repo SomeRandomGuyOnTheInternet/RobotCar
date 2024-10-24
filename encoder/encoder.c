@@ -7,6 +7,65 @@ double moved_distance = 0.0;
 volatile float actual_speed_left;
 volatile float actual_speed_right;
 
+void encoder_init()
+{
+    gpio_init(L_ENCODER_POW);
+    gpio_init(L_ENCODER_OUT);
+
+    gpio_set_dir(L_ENCODER_POW, GPIO_OUT);
+    gpio_set_dir(L_ENCODER_OUT, GPIO_IN);
+
+    gpio_pull_up(L_ENCODER_OUT);
+
+    gpio_init(R_ENCODER_POW);
+    gpio_init(R_ENCODER_OUT);
+
+    gpio_set_dir(R_ENCODER_POW, GPIO_OUT);
+    gpio_set_dir(R_ENCODER_OUT, GPIO_IN);
+
+    gpio_pull_up(R_ENCODER_OUT);
+
+    gpio_put(L_ENCODER_POW, 1);
+    gpio_put(R_ENCODER_POW, 1);
+}
+
+bool encoder_1s_callback()
+{
+    get_speed_and_distance(LEFT_WHEEL, pulse_count_left);
+    get_speed_and_distance(RIGHT_WHEEL, pulse_count_right);
+
+    pulse_count_left = 0;
+    pulse_count_right = 0;
+
+    return true;
+}
+
+void encoder_pulse_callback(uint gpio, uint32_t events)
+{
+    gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
+    gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
+}
+
+void start_tracking()
+{
+    moved_distance = 0;
+}
+
+void read_encoder_pulse(uint gpio, uint32_t events)
+{
+    if (gpio == L_ENCODER_OUT)
+    {
+        pulse_count_left++;
+    }
+
+    else if (gpio == R_ENCODER_OUT)
+    {
+        pulse_count_right++;
+    }
+
+    oscillation++;
+}
+
 void get_speed_and_distance(int encoder, uint32_t pulse_count)
 {
     double distance_per_hole = ENCODER_CIRCUMFERENCE / ENCODER_NOTCH;
@@ -32,66 +91,6 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
     }
 
     return;
-}
-
-void start_tracking()
-{
-    moved_distance = 0;
-}
-
-void read_encoder_pulse(uint gpio, uint32_t events)
-{
-    if (gpio == L_ENCODER_OUT)
-    {
-        pulse_count_left++;
-    }
-
-    else if (gpio == R_ENCODER_OUT)
-    {
-        pulse_count_right++;
-    }
-
-    oscillation++;
-}
-
-void encoder_pulse_callback(uint gpio, uint32_t events)
-{
-    gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-    gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-}
-
-bool encoder_1s_callback()
-{
-    get_speed_and_distance(LEFT_WHEEL, pulse_count_left);
-    get_speed_and_distance(RIGHT_WHEEL, pulse_count_right);
-
-    pulse_count_left = 0;
-    pulse_count_right = 0;
-
-    return true;
-}
-
-void encoder_init()
-{
-
-    gpio_init(L_ENCODER_POW);
-    gpio_init(L_ENCODER_OUT);
-
-    gpio_set_dir(L_ENCODER_POW, GPIO_OUT);
-    gpio_set_dir(L_ENCODER_OUT, GPIO_IN);
-
-    gpio_pull_up(L_ENCODER_OUT);
-
-    gpio_init(R_ENCODER_POW);
-    gpio_init(R_ENCODER_OUT);
-
-    gpio_set_dir(R_ENCODER_POW, GPIO_OUT);
-    gpio_set_dir(R_ENCODER_OUT, GPIO_IN);
-
-    gpio_pull_up(R_ENCODER_OUT);
-
-    gpio_put(L_ENCODER_POW, 1);
-    gpio_put(R_ENCODER_POW, 1);
 }
 
 // int main() {
