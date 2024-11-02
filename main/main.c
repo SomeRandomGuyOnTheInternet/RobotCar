@@ -163,8 +163,8 @@ void test_straight_movement()
 
 int main() {
     stdio_init_all();
-    initMotorSetup();  // Initialize motor GPIO pins
-    initMotorPWM();    // Initialize PWM for motor control
+    motor_init();  // Initialize motor GPIO pins
+    motor_pwm_init();    // Initialize PWM for motor control
 
     test_individual_motors();  // Run the test function
 
