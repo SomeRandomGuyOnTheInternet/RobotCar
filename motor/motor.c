@@ -16,9 +16,9 @@ float setpoint_speed = 15.0; // Target speed in cm/s (or unit of choice)
 
 // Separate PID gains for each motor
 float Kp_L = 2.0;
-float Kp_R = 1.5;
-float Ki_L = 0.7;
-float Ki_R = 0.5;
+float Kp_R = 2.0;
+float Ki_L = 0.2;
+float Ki_R = 0.2;
 float Kd_L = 0.1;
 float Kd_R = 0.1;
 
@@ -242,15 +242,20 @@ float compute_pid(float setpoint, float current_value, float Kp, float Ki, float
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
 
     *prev_error = error;
+
+    printf("PID Control - Setpoint: %.2f, Current: %.2f, Error: %.2f, Control Signal: %.2f\n",
+           setpoint, current_value, error, control_signal);
+
     return control_signal;
 }
 
+
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
 void update_motor_speed() {
-    pwmL = compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
-    pwmR = compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
+    pwmL += compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
+    pwmR += compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
 
-    // Ensure PWM levels are within the valid range
+    // Constrain PWM levels within the minimum and maximum values
     if (pwmL < PWM_MIN) pwmL = PWM_MIN;
     if (pwmR < PWM_MIN) pwmR = PWM_MIN;
     if (pwmL > PWM_MAX) pwmL = PWM_MAX;
