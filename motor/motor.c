@@ -28,13 +28,11 @@ float integral_R = 0.0;
 float prev_error_L = 0.0;
 float prev_error_R = 0.0;
 
-float setpoint_speed = 15.0;
-
 volatile float pwmL = 1900;
 volatile float pwmR = 1900;
 
 // Function to initialize pins for motors
-void initMotorSetup()
+void motor_init()
 {
     // Initialize GPIO pins for L motor control
     gpio_init(L_MOTOR_IN1);
@@ -62,7 +60,7 @@ void initMotorSetup()
 }
 
 // Function to initialize PWMs for motors
-void initMotorPWM()
+void motor_pwm_init()
 {
     // Set GPIO pins for ENA and ENB to PWM mode
     gpio_set_function(L_MOTOR_ENA, GPIO_FUNC_PWM);
@@ -88,7 +86,7 @@ void initMotorPWM()
 }
 
 // Function to move forward
-void moveMotor(float new_pwmL, float new_pwmR)
+void move_motor(float new_pwmL, float new_pwmR)
 {
     // printf("UPDATING MOTOR : LEFT - %f, RIGHT - %f\n", new_pwmL, new_pwmR);
 
@@ -168,7 +166,7 @@ void turnMotor(int direction)
     oscillation = 0;
 
     int targetNotchCount = 190 * ENCODER_NOTCH / 360;
-    moveMotor(3125, 3125);
+    move_motor(3125, 3125);
 
     // Motor to turn left
     if (direction == 0)
@@ -213,7 +211,7 @@ void moveGrids(int number_of_grids)
 
     while (!completeMovement)
     {
-        moveMotor(pwmL, pwmR);
+        move_motor(pwmL, pwmR);
         sleep_ms(50);
     }
     // Stop once reached target grids

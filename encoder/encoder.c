@@ -125,7 +125,7 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 //         sleep_ms(250);
 
 //         // Run at 32% duty cycle
-//         // moveMotor(1000);
+//         // move_motor(1000);
 //         move_motor(1000, 1000);
 //         sleep_ms(5000);
 //     }

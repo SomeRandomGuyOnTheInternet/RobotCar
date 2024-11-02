@@ -138,7 +138,7 @@ void test_straight_movement()
 
     while (1) {
         update_motor_speed(); // Adjust motor speed based on encoder feedback
-        moveMotor(pwmL, pwmR); // Apply adjusted PWM values
+        move_motor(pwmL, pwmR); // Apply adjusted PWM values
 
         // Monitor and print actual speeds and PWM values
         printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
@@ -154,7 +154,7 @@ int main()
     init_all();
     init_interrupts();
 
-    test();
+    test_straight_movement();
 
     return 0;
 }
