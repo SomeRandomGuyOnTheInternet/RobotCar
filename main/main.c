@@ -11,6 +11,13 @@
 #include "motor.h"
 #include "gy511.h"
 
+// External variables declared in motor.c
+extern float setpoint_speed;
+extern volatile float actual_speed_left;
+extern volatile float actual_speed_right;
+extern volatile float pwmL;
+extern volatile float pwmR;
+
 void callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
@@ -35,101 +42,57 @@ void callbacks(uint gpio, uint32_t events)
 // Function to init all sensors and motors
 void init_all()
 {
-    // Initialise standard I/O
     stdio_init_all();
     sleep_ms(1000);
 
-    // Initialise motor pins and PWM
-    init_motor_setup();
-    init_motor_pwm();
+    // Initialize motor and other components
+    initMotorSetup();
+    initMotorPWM();
     printf("Motor pins and PWM initialised\n");
-    sleep_ms(500);
 
-    // Initialise ultrasonic sensor
     ultrasonic_init();
     printf("Ultrasonic pins initialised\n");
-    sleep_ms(500);
 
-    // Initialise ultrasonic sensor
     gy511_init();
     printf("Magnetometer pins initialised\n");
-    sleep_ms(500);
 
-    // Initialise encoder sensor
     encoder_init();
     printf("Encoder pins initialised\n");
-    sleep_ms(500);
 }
 
-// Function to init all interrupts
 void init_interrupts()
 {
     printf("Interrupts initialised\n");
-    // Initialise interrupts for needed sensors
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
-double normalise(double value, double min, double max) {
-   // Ensure value is within bounds
-    if (value < min) value = min;
-    if (value > max) value = max;
-
-    return (value - min) / (max - min);
-}
-
-void test()
+void test_straight_movement()
 {
-    printf("Starting test\n");
+    printf("Starting straight movement test with encoder feedback.\n");
 
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
+    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer); // 1-second callback for speed updates
 
-    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
+    while (1) {
+        update_motor_speed(); // Adjust motor speed based on encoder feedback
+        moveMotor(pwmL, pwmR); // Apply adjusted PWM values
 
-    bool obstacle_detected = false;
-    double cm;
-    double prev_cm;
+        // Monitor and print actual speeds and PWM values
+        printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+               setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
 
-    while (1)
-    {
-        sleep_ms(250); // Reduced sleep for more responsive readings
-
-        // Read ultrasonic sensor
-        cm = get_cm(state);
-        // cm = 99;
-        obstacle_detected = cm < MIN_CM;
-
-        printf("----\n");
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            printf("Obstacle detected\n");
-            stop_motor();
-        }
-        else
-        {
-            double normalised = normalise(cm, MIN_CM, MAX_CM);
-            int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            move_motor(normalised_duty_cycle, normalised_duty_cycle);
-        }
-
-        if (cm != prev_cm) {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
-            prev_cm = cm;
-        }
+        sleep_ms(100); // Delay for periodic adjustment
     }
 }
 
-int main()
-{
-    // Init all required
+int main() {
     init_all();
     init_interrupts();
 
-    test();
+    // Run the straight movement test
+    test_straight_movement();
 
     return 0;
 }

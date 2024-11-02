@@ -9,13 +9,18 @@
 #include "math.h"
 #include "../encoder/encoder.h"
 
-extern volatile float actual_speed_L;
-extern volatile float actual_speed_R;
+extern volatile float actual_speed_left; // Get encoder speed for left motor
+extern volatile float actual_speed_right; // Get encoder speed for right motor
 
-// PID parameters
-float Kp = 2.0;
-float Ki = 2.0;
-float Kd = 0.0;
+float setpoint_speed = 15.0; // Target speed in cm/s (or unit of choice)
+
+// Separate PID gains for each motor
+float Kp_L = 1.5;
+float Kp_R = 1.5;
+float Ki_L = 0.5;
+float Ki_R = 0.5;
+float Kd_L = 0.1;
+float Kd_R = 0.1;
 
 // PID control variables
 float integral_L = 0.0;
@@ -231,47 +236,29 @@ void reverseGrids(int number_of_grids)
 }*/
 
 // Function to compute PID control signal
-float compute_pid(float setpoint, float current_value, float *integral, float *prev_error)
-{
+float compute_pid(float setpoint, float current_value, float Kp, float Ki, float Kd, float *integral, float *prev_error) {
     float error = setpoint - current_value;
-
     *integral += error;
 
     float derivative = error - *prev_error;
-
-    float control_signal = Kp * error + Ki * *integral + Kd * derivative;
+    float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
 
     *prev_error = error;
-
     return control_signal;
 }
 
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
-void update_motor_speed()
-{
-    // Compute the control signals
-    pwmL = compute_pid(setpoint_speed, actual_speed_L, &integral_L, &prev_error_L);
-    pwmR = compute_pid(setpoint_speed, actual_speed_R, &integral_R, &prev_error_R);
+void update_motor_speed() {
+    pwmL = compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
+    pwmR = compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
+
+    // Ensure PWM levels are within the valid range
+    if (pwmL < PWM_MIN) pwmL = PWM_MIN;
+    if (pwmR < PWM_MIN) pwmR = PWM_MIN;
+    if (pwmL > PWM_MAX) pwmL = PWM_MAX;
+    if (pwmR > PWM_MAX) pwmR = PWM_MAX;
 }
 
-int main() {
-    stdio_init_all(); // Initialize standard I/O for debugging
-    initMotorSetup(); // Initialize motor GPIO pins
-    initMotorPWM();   // Initialize PWM for motor control
 
-    setpoint_speed = 15.0; // Set a target speed for testing
 
-    while (1) {
-        // Update motor speed based on PID control every 100ms
-        update_motor_speed();
-        moveMotor(pwmL, pwmR); // Apply the PID-adjusted PWM to the motors
 
-        // Print values for debugging
-        printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-               setpoint_speed, actual_speed_L, actual_speed_R, pwmL, pwmR);
-
-        sleep_ms(100); // Delay to avoid rapid updates, simulating periodic PID adjustments
-    }
-
-    return 0;
-}
