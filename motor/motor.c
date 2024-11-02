@@ -9,24 +9,21 @@
 #include "math.h"
 #include "../encoder/encoder.h"
 
-extern volatile float actual_speed_left; // Get encoder speed for left motor
-extern volatile float actual_speed_right; // Get encoder speed for right motor
+extern volatile float actual_speed_L;
+extern volatile float actual_speed_R;
 
-float setpoint_speed = 15.0; // Target speed in cm/s (or unit of choice)
-
-// Separate PID gains for each motor
-float Kp_L = 2.0;
-float Kp_R = 2.0;
-float Ki_L = 0.2;
-float Ki_R = 0.2;
-float Kd_L = 0.1;
-float Kd_R = 0.1;
+// PID parameters
+float Kp = 1.0;
+float Ki = 0.01;
+float Kd = 0.01;
 
 // PID control variables
 float integral_L = 0.0;
 float integral_R = 0.0;
 float prev_error_L = 0.0;
 float prev_error_R = 0.0;
+
+float setpoint_speed = 15.0;
 
 volatile float pwmL = 1900;
 volatile float pwmR = 1900;
@@ -204,64 +201,64 @@ void turn_motor(int direction)
     sleep_ms(50);
 }
 
-/* Function to move forward for a set number of grids
-void moveGrids(int number_of_grids)
-{
-    startTracking(number_of_grids);
 
-    while (!completeMovement)
-    {
-        move_motor(pwmL, pwmR);
-        sleep_ms(50);
-    }
-    // Stop once reached target grids
-    stop_motor();
-}*/
-
-/* Function to move backwards for a set number of grids
-void reverseGrids(int number_of_grids)
-{
-    startTracking(number_of_grids);
-
-    while (!completeMovement)
-    {
-        reverseMotor(pwmL, pwmR);
-        sleep_ms(50);
-    }
-
-    // Stop once reached target grids
-    stop_motor();
-}*/
 
 // Function to compute PID control signal
-float compute_pid(float setpoint, float current_value, float Kp, float Ki, float Kd, float *integral, float *prev_error) {
+float compute_pid(float setpoint, float current_value, float *integral, float *prev_error)
+{
     float error = setpoint - current_value;
+
     *integral += error;
 
     float derivative = error - *prev_error;
-    float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
+
+    float control_signal = Kp * error + Ki * *integral + Kd * derivative;
 
     *prev_error = error;
-
-    printf("PID Control - Setpoint: %.2f, Current: %.2f, Error: %.2f, Control Signal: %.2f\n",
-           setpoint, current_value, error, control_signal);
 
     return control_signal;
 }
 
-
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
-void update_motor_speed() {
-    pwmL += compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
-    pwmR += compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
-
-    // Constrain PWM levels within the minimum and maximum values
-    if (pwmL < PWM_MIN) pwmL = PWM_MIN;
-    if (pwmR < PWM_MIN) pwmR = PWM_MIN;
-    if (pwmL > PWM_MAX) pwmL = PWM_MAX;
-    if (pwmR > PWM_MAX) pwmR = PWM_MAX;
+void update_motor_speed()
+{
+    // Compute the control signals
+    pwmL = compute_pid(setpoint_speed, actual_speed_L, &integral_L, &prev_error_L);
+    pwmR = compute_pid(setpoint_speed, actual_speed_R, &integral_R, &prev_error_R);
 }
 
+/*
+int main() {
+    stdio_init_all();
 
+    // Initialise motor GPIO pins
+    initMotorSetup();
 
+    // Initialise motor PWM
+    initMotorPWM();
 
+    while (1) {
+        // Run at half duty cycle for 2 seconds
+        move_motor(1563);
+        sleep_ms(2000);
+
+        // Turn right for 1 second
+        turnMotor(1)
+        sleep_ms(1000);
+
+        // Run at full duty cycle for 2 seconds
+        moveMotor(3125);
+        sleep_ms(2000);
+
+        // Turn left for 1 second
+        turnMotor(0)
+        sleep_ms(1000);
+
+        // Stop for 5 seconds
+        stop_motor()
+        sleep_ms(5000);
+    }
+
+    return 0;
+}
+*/

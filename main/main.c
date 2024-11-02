@@ -128,54 +128,34 @@ void test()
         }
     }
 }
-// Function to test individual motors
-void test_individual_motors() {
-    printf("Testing left motor...\n");
-    move_motor(1500, 0);  // Move left motor only with PWM 1500
-    sleep_ms(2000);        // Run for 2 seconds
-    stop_motor();          // Stop the motor
-    sleep_ms(1000);        // Pause before next test
-
-    printf("Testing right motor...\n");
-    move_motor(0, 1500);   // Move right motor only with PWM 1500
-    sleep_ms(2000);        // Run for 2 seconds
-    stop_motor();          // Stop the motor
-}
 
 void test_straight_movement()
 {
-    printf("Starting straight movement test with encoder feedback.\n");
+    printf("Starting straight movement test with PID control.\n");
 
+    // Set up a repeating timer for encoder callbacks to update speed every 100 ms
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer); // 1-second callback for speed updates
+    add_repeating_timer_ms(100, encoder_1s_callback, NULL, &timer);
 
-    while (1) {
-        update_motor_speed(); // Adjust motor speed based on encoder feedback
-        move_motor(pwmL, pwmR); // Apply adjusted PWM values
+    // Main loop to control motor speed based on PID feedback
+    while (1)
+    {
+        // Call update_motor_speed to calculate PID adjustments
+        update_motor_speed();
 
-        // Monitor and print actual speeds and PWM values
+        // Apply the calculated PWM values to the motors
+        move_motor(pwmL, pwmR);
+
+        // Print current status for monitoring
         printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
                setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
 
-        sleep_ms(100); // Delay for periodic adjustment
+        // Small delay to allow visible feedback in the console
+        sleep_ms(100);
     }
 }
 
-int main() {
-    stdio_init_all();
-    motor_init();  // Initialize motor GPIO pins
-    motor_pwm_init();    // Initialize PWM for motor control
-
-    test_individual_motors();  // Run the test function
-
-    while (1) {
-        // Keep the program running
-    }
-
-    return 0;
-}
-
-/*int main()
+int main()
 {
     // Init all required
     init_all();
@@ -184,4 +164,4 @@ int main() {
     test_straight_movement();
 
     return 0;
-}*/
+}
