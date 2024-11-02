@@ -128,6 +128,19 @@ void test()
         }
     }
 }
+// Function to test individual motors
+void test_individual_motors() {
+    printf("Testing left motor...\n");
+    move_motor(1500, 0);  // Move left motor only with PWM 1500
+    sleep_ms(2000);        // Run for 2 seconds
+    stop_motor();          // Stop the motor
+    sleep_ms(1000);        // Pause before next test
+
+    printf("Testing right motor...\n");
+    move_motor(0, 1500);   // Move right motor only with PWM 1500
+    sleep_ms(2000);        // Run for 2 seconds
+    stop_motor();          // Stop the motor
+}
 
 void test_straight_movement()
 {
@@ -148,7 +161,21 @@ void test_straight_movement()
     }
 }
 
-int main()
+int main() {
+    stdio_init_all();
+    initMotorSetup();  // Initialize motor GPIO pins
+    initMotorPWM();    // Initialize PWM for motor control
+
+    test_individual_motors();  // Run the test function
+
+    while (1) {
+        // Keep the program running
+    }
+
+    return 0;
+}
+
+/*int main()
 {
     // Init all required
     init_all();
@@ -157,4 +184,4 @@ int main()
     test_straight_movement();
 
     return 0;
-}
+}*/
