@@ -53,6 +53,7 @@ void ultrasonic_init()
 
 void ultrasonic_interrupt_callback(uint gpio, uint32_t events)
 {
+    printf("Ultrasonic interrupt recieved\n");
     if (gpio == ECHOPIN && events & GPIO_IRQ_EDGE_RISE)
     {
         set_start_time(gpio, events);
@@ -116,8 +117,8 @@ double get_cm(kalman_state *state)
 //     sleep_ms(1000);
 
 //     // Initialise motor GPIO pins and PWM
-//     init_motor_setup();
-//     init_motor_pwm();
+//     motor_init();
+//     motor_pwm_init();
 
 //     // Initialise ultrasonic sensor
 //     ultrasonic_init();
@@ -132,6 +133,8 @@ double get_cm(kalman_state *state)
 
 //     while (1)
 //     {
+//         printf("ECHOPIN: %i\n", ECHOPIN);
+//         printf("TRIGPIN: %i\n", TRIGPIN);
 //         sleep_ms(500); // Reduced sleep for more responsive readings
 
 //         // Read ultrasonic sensor

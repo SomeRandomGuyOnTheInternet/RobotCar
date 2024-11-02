@@ -28,6 +28,7 @@ void callbacks(uint gpio, uint32_t events)
         ultrasonic_interrupt_callback(ECHOPIN, events);
         break;
     default:
+        printf("Other interrupt recieved\n");
         break;
     }
 }
@@ -66,17 +67,10 @@ void init_interrupts()
 {
     printf("Interrupts initialised\n");
     // Initialise interrupts for needed sensors
-    gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
-}
+    gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
 
-double normalise(double value, double min, double max) {
-   // Ensure value is within bounds
-    if (value < min) value = min;
-    if (value > max) value = max;
-
-    return (value - min) / (max - min);
 }
 
 void test_straight_movement()
@@ -86,9 +80,10 @@ void test_straight_movement()
     struct repeating_timer timer;
     add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer); // 1-second callback for speed updates
 
-    while (1) {
+    while (1)
+    {
         move_motor(pwmL, pwmR); // Apply adjusted PWM values
-        update_motor_speed(); // Adjust motor speed based on encoder feedback
+        update_motor_speed();   // Adjust motor speed based on encoder feedback
 
         // Monitor and print actual speeds and PWM values
         printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
@@ -98,7 +93,7 @@ void test_straight_movement()
     }
 }
 
-void test()
+void station_1_test()
 {
     printf("Starting test\n");
 
@@ -111,13 +106,13 @@ void test()
     double cm;
     double prev_cm;
 
+    // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
         sleep_ms(250); // Reduced sleep for more responsive readings
 
         // Read ultrasonic sensor
         cm = get_cm(state);
-        // cm = 99;
         obstacle_detected = cm < MIN_CM;
 
         printf("----\n");
@@ -125,19 +120,48 @@ void test()
         if (obstacle_detected)
         {
             printf("Obstacle detected\n");
-            stop_motor();
+            // break;
         }
         else
         {
-            // double normalised = normalise(cm, MIN_CM, MAX_CM);
-            // int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            move_motor(PWM_MIN, PWM_MIN);
+            move_motor(pwmL, pwmR); // Apply adjusted PWM values
+            update_motor_speed();   // Adjust motor speed based on encoder feedback
+
+            printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+                   setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
         }
 
-        if (cm != prev_cm) {
+        if (cm != prev_cm)
+        {
             printf("Obstacle distance: %.2lf cm\n", cm);
             printf("----\n");
             prev_cm = cm;
+        }
+    }
+
+    // TURN RIGHT
+    stop_motor();
+    turn_motor(RIGHT_WHEEL);
+    moved_distance = 0;
+
+    // STOP AFTER 90CM
+    while (1)
+    {
+        sleep_ms(250); // Reduced sleep for more responsive readings
+
+        if (moved_distance >= 90)
+        {
+            printf("Station 1 complete!\n");
+            break;
+        }
+        else
+        {
+            move_motor(pwmL, pwmR); // Apply adjusted PWM values
+            update_motor_speed();   // Adjust motor speed based on encoder feedback
+
+            printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+                   setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+            printf("Moved distance: %.2f\n", moved_distance);
         }
     }
 }
@@ -148,7 +172,7 @@ int main()
     init_all();
     init_interrupts();
 
-    test_straight_movement();
+    station_1_test();
 
     return 0;
 }
