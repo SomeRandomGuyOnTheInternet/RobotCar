@@ -15,9 +15,9 @@ extern volatile float actual_speed_right; // Get encoder speed for right motor
 float setpoint_speed = 15.0; // Target speed in cm/s (or unit of choice)
 
 // Separate PID gains for each motor
-float Kp_L = 1.5;
+float Kp_L = 2.0;
 float Kp_R = 1.5;
-float Ki_L = 0.5;
+float Ki_L = 0.7;
 float Ki_R = 0.5;
 float Kd_L = 0.1;
 float Kd_R = 0.1;
@@ -90,7 +90,7 @@ void move_motor(float new_pwmL, float new_pwmR)
 {
     // printf("UPDATING MOTOR : LEFT - %f, RIGHT - %f\n", new_pwmL, new_pwmR);
 
-    // stopMotor();
+    // stop_motor();
     sleep_ms(50);
     // Set both motors to output high for desired PWM
     // Get PWM slice and channel for ENA and ENB
@@ -123,9 +123,9 @@ void move_motor(float new_pwmL, float new_pwmR)
 }
 
 // Function to move backward
-void reverseMotor(float new_pwmL, float new_pwmR)
+void reverse_motor(float new_pwmL, float new_pwmR)
 {
-    // stopMotor();
+    // stop_motor();
     sleep_ms(50);
 
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwmL);
@@ -143,7 +143,7 @@ void reverseMotor(float new_pwmL, float new_pwmR)
 }
 
 // Function to stop
-void stopMotor()
+void stop_motor()
 {
     // Turn off all motors
     gpio_put(L_MOTOR_IN1, 0);
@@ -158,7 +158,7 @@ void stopMotor()
 
 // Function to turn
 // 0 - left, 1 - right
-void turnMotor(int direction)
+void turn_motor(int direction)
 {
     // pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), pwm);
     // pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), pwm);
@@ -200,7 +200,7 @@ void turnMotor(int direction)
         // wait
     }
 
-    stopMotor();
+    stop_motor();
     sleep_ms(50);
 }
 
@@ -215,7 +215,7 @@ void moveGrids(int number_of_grids)
         sleep_ms(50);
     }
     // Stop once reached target grids
-    stopMotor();
+    stop_motor();
 }*/
 
 /* Function to move backwards for a set number of grids
@@ -230,7 +230,7 @@ void reverseGrids(int number_of_grids)
     }
 
     // Stop once reached target grids
-    stopMotor();
+    stop_motor();
 }*/
 
 // Function to compute PID control signal
