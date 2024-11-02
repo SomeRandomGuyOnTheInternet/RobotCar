@@ -247,10 +247,10 @@ float compute_pid(float setpoint, float current_value, float Kp, float Ki, float
 
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
 void update_motor_speed() {
-    pwmL = compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
-    pwmR = compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
+    pwmL += compute_pid(setpoint_speed, actual_speed_left, Kp_L, Ki_L, Kd_L, &integral_L, &prev_error_L);
+    pwmR += compute_pid(setpoint_speed, actual_speed_right, Kp_R, Ki_R, Kd_R, &integral_R, &prev_error_R);
 
-    // Ensure PWM levels are within the valid range
+    // Constrain PWM levels within the minimum and maximum values
     if (pwmL < PWM_MIN) pwmL = PWM_MIN;
     if (pwmR < PWM_MIN) pwmR = PWM_MIN;
     if (pwmL > PWM_MAX) pwmL = PWM_MAX;
