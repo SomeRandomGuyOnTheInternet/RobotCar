@@ -11,6 +11,12 @@
 #include "motor.h"
 #include "gy511.h"
 
+extern float setpoint_speed;
+extern volatile float actual_speed_left;
+extern volatile float actual_speed_right;
+extern volatile float pwmL;
+extern volatile float pwmR;
+
 void callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
@@ -107,7 +113,6 @@ void test()
         {
             printf("Obstacle detected\n");
             turn_motor(1);
-            
         }
         else
         {
@@ -121,6 +126,25 @@ void test()
             printf("----\n");
             prev_cm = cm;
         }
+    }
+}
+
+void test_straight_movement()
+{
+    printf("Starting straight movement test with encoder feedback.\n");
+
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer); // 1-second callback for speed updates
+
+    while (1) {
+        update_motor_speed(); // Adjust motor speed based on encoder feedback
+        moveMotor(pwmL, pwmR); // Apply adjusted PWM values
+
+        // Monitor and print actual speeds and PWM values
+        printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+               setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+
+        sleep_ms(100); // Delay for periodic adjustment
     }
 }
 
