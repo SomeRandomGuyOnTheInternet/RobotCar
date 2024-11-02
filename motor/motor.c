@@ -15,10 +15,10 @@ extern volatile float actual_speed_right; // Get encoder speed for right motor
 float setpoint_speed = 15.0; // Target speed in cm/s (or unit of choice)
 
 // Separate PID gains for each motor
-float Kp_L = 1.5;
-float Kp_R = 1.5;
-float Ki_L = 0.5;
-float Ki_R = 0.5;
+float Kp_L = 2.0;
+float Kp_R = 2.0;
+float Ki_L = 0.2;
+float Ki_R = 0.2;
 float Kd_L = 0.1;
 float Kd_R = 0.1;
 
