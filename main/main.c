@@ -98,8 +98,8 @@ void test()
 
         // Read ultrasonic sensor
         cm = get_cm(state);
-        // cm = 99;
-        obstacle_detected = cm < MIN_CM;
+        cm = 99;
+        // obstacle_detected = cm < MIN_CM;
 
         printf("----\n");
         // Control motor based on obstacle detection
@@ -110,9 +110,9 @@ void test()
         }
         else
         {
-            double normalised = normalise(cm, MIN_CM, MAX_CM);
-            int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            move_motor(normalised_duty_cycle, normalised_duty_cycle);
+            // double normalised = normalise(cm, MIN_CM, MAX_CM);
+            // int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
+            move_motor(PWM_MIN, PWM_MIN);
         }
 
         if (cm != prev_cm) {
