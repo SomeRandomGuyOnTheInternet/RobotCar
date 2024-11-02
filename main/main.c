@@ -94,7 +94,7 @@ void test_straight_movement()
         printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
                setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
 
-        sleep_ms(100); // Delay for periodic adjustment
+        sleep_ms(1000); // Delay for periodic adjustment
     }
 }
 
@@ -148,7 +148,7 @@ int main()
     init_all();
     init_interrupts();
 
-    test();
+    test_straight_movement();
 
     return 0;
 }

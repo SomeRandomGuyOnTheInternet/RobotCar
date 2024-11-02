@@ -13,8 +13,8 @@ extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
 
 // PID parameters
-float Kp = 2.0;
-float Ki = 0.01;
+float Kp = 2.00;
+float Ki = 0.05;
 float Kd = 0.01;
 
 // PID control variables
@@ -210,28 +210,41 @@ void turn_motor(int direction)
 
 
 
-// Function to compute PID control signal
-float compute_pid(float setpoint, float current_value, float *integral, float *prev_error)
+// Function to compute adjusted PWM based on PID control for speed
+float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error)
 {
-    float error = setpoint - current_value;
+    // Calculate the speed error
+    float error = setpoint_speed - current_speed;
 
+    // Update the integral term with the current error
     *integral += error;
 
+    // Calculate the derivative term
     float derivative = error - *prev_error;
 
-    float control_signal = Kp * error + Ki * *integral + Kd * derivative;
+    // Compute the PID adjustment
+    float adjustment = Kp * error + Ki * (*integral) + Kd * derivative;
 
+    // Calculate the new PWM value by adding the adjustment to the current PWM
+    float adjusted_pwm = current_pwm + adjustment;
+
+    // Ensure the PWM stays within bounds (assuming 0 to 255 for PWM range)
+    if (adjusted_pwm > PWM_MAX) adjusted_pwm = PWM_MAX;
+    if (adjusted_pwm < 0) adjusted_pwm = 0;
+
+    // Store the current error for the next cycle
     *prev_error = error;
 
-    return control_signal;
+    return adjusted_pwm;
 }
+
 
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
 void update_motor_speed()
 {
     // Compute the control signals
-    pwmL = compute_pid(setpoint_speed, actual_speed_left, &integral_L, &prev_error_L);
-    pwmR = compute_pid(setpoint_speed, actual_speed_right, &integral_R, &prev_error_R);
+    pwmL = compute_pid(setpoint_speed, actual_speed_left, pwmL, &integral_L, &prev_error_L);
+    pwmR = compute_pid(setpoint_speed, actual_speed_right, pwmR, &integral_R, &prev_error_R);
 }
 
 /*
