@@ -242,8 +242,13 @@ float compute_pid(float setpoint, float current_value, float Kp, float Ki, float
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
 
     *prev_error = error;
+
+    printf("PID Control - Setpoint: %.2f, Current: %.2f, Error: %.2f, Control Signal: %.2f\n",
+           setpoint, current_value, error, control_signal);
+
     return control_signal;
 }
+
 
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
 void update_motor_speed() {
