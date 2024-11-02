@@ -13,23 +13,23 @@ extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
 
 // PID parameters
-float Kp = 2.0;
-float Ki = 2.0;
-float Kd = 0.0;
+float Kp = 1.0;
+float Ki = 0.01;
+float Kd = 0.01;
 
 // PID control variables
-float integral_left = 0.0;
-float integral_right = 0.0;
-float prev_error_left = 0.0;
-float prev_error_right = 0.0;
+float integral_L = 0.0;
+float integral_R = 0.0;
+float prev_error_L = 0.0;
+float prev_error_R = 0.0;
 
 float setpoint_speed = 15.0;
 
-volatile float pwm_left = 1900;
-volatile float pwm_right = 1900;
+volatile float pwmL = 1900;
+volatile float pwmR = 1900;
 
 // Function to initialize pins for motors
-void init_motor_setup()
+void motor_init()
 {
     // Initialize GPIO pins for L motor control
     gpio_init(L_MOTOR_IN1);
@@ -57,59 +57,56 @@ void init_motor_setup()
 }
 
 // Function to initialize PWMs for motors
-void init_motor_pwm()
+void motor_pwm_init()
 {
     // Set GPIO pins for ENA and ENB to PWM mode
     gpio_set_function(L_MOTOR_ENA, GPIO_FUNC_PWM);
     gpio_set_function(R_MOTOR_ENB, GPIO_FUNC_PWM);
 
     // Get PWM slice and channel for ENA and ENB
-    uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
-    uint channel_left = pwm_gpio_to_channel(L_MOTOR_ENA);
-    uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
-    uint channel_right = pwm_gpio_to_channel(R_MOTOR_ENB);
+    uint sliceLeft = pwm_gpio_to_slice_num(L_MOTOR_ENA);
+    uint channelLeft = pwm_gpio_to_channel(L_MOTOR_ENA);
+    uint sliceRight = pwm_gpio_to_slice_num(R_MOTOR_ENB);
+    uint channelRight = pwm_gpio_to_channel(R_MOTOR_ENB);
 
     // Set PWM frequency to 40kHz (125MHz / 3125)
-    pwm_set_wrap(slice_left, 3125);
-    pwm_set_wrap(slice_right, 3125);
+    pwm_set_wrap(sliceLeft, 3125);
+    pwm_set_wrap(sliceRight, 3125);
 
     // Set clock divider to 125
-    pwm_set_clkdiv(slice_left, 125);
-    pwm_set_clkdiv(slice_right, 125);
-
-    // Set initial PWM levels using the channel variables
-    pwm_set_chan_level(slice_left, channel_left, 0);
-    pwm_set_chan_level(slice_right, channel_right, 0);
+    pwm_set_clkdiv(sliceLeft, 125);
+    pwm_set_clkdiv(sliceRight, 125);
 
     // Enable PWM for both motor channels
-    pwm_set_enabled(slice_left, true);
-    pwm_set_enabled(slice_right, true);
+    pwm_set_enabled(sliceLeft, true);
+    pwm_set_enabled(sliceRight, true);
 }
 
 // Function to move forward
-void move_motor(float new_pwm_left, float new_pwm_right)
+void move_motor(float new_pwmL, float new_pwmR)
 {
-    printf("UPDATING MOTOR : LEFT - %f, RIGHT - %f\n", new_pwm_left, new_pwm_right);
+    // printf("UPDATING MOTOR : LEFT - %f, RIGHT - %f\n", new_pwmL, new_pwmR);
 
+    // stop_motor();
     sleep_ms(50);
-    
+    // Set both motors to output high for desired PWM
     // Get PWM slice and channel for ENA and ENB
-    uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
-    uint channel_left = pwm_gpio_to_channel(L_MOTOR_ENA);
-    uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
-    uint channel_right = pwm_gpio_to_channel(R_MOTOR_ENB);
+    uint sliceLeft = pwm_gpio_to_slice_num(L_MOTOR_ENA);
+    uint channelLeft = pwm_gpio_to_channel(L_MOTOR_ENA);
+    uint sliceRight = pwm_gpio_to_slice_num(R_MOTOR_ENB);
+    uint channelRight = pwm_gpio_to_channel(R_MOTOR_ENB);
 
     // Set PWM frequency to 40kHz (125MHz / 3125)
-    pwm_set_wrap(slice_left, 3125);
-    pwm_set_wrap(slice_right, 3125);
+    pwm_set_wrap(sliceLeft, 3125);
+    pwm_set_wrap(sliceRight, 3125);
 
     // Set clock divider to 125
-    pwm_set_clkdiv(slice_left, 125);
-    pwm_set_clkdiv(slice_right, 125);
+    pwm_set_clkdiv(sliceLeft, 125);
+    pwm_set_clkdiv(sliceRight, 125);
 
-    // Use the channel variables for PWM level setting
-    pwm_set_chan_level(slice_left, channel_left, new_pwm_left);
-    pwm_set_chan_level(slice_right, channel_right, new_pwm_right);
+    pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwmL);
+    // sleep_ms(50);
+    pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), new_pwmR);
 
     // Turn on both motors
     gpio_put(L_MOTOR_IN1, 0);
@@ -123,17 +120,13 @@ void move_motor(float new_pwm_left, float new_pwm_right)
 }
 
 // Function to move backward
-void reverse_motor(float new_pwm_left, float new_pwm_right)
+void reverse_motor(float new_pwmL, float new_pwmR)
 {
+    // stop_motor();
     sleep_ms(50);
 
-    uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
-    uint channel_left = pwm_gpio_to_channel(L_MOTOR_ENA);
-    uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
-    uint channel_right = pwm_gpio_to_channel(R_MOTOR_ENB);
-
-    pwm_set_chan_level(slice_left, channel_left, new_pwm_left);
-    pwm_set_chan_level(slice_right, channel_right, new_pwm_right);
+    pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwmL);
+    pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), new_pwmR);
 
     // Turn on both motors
     gpio_put(L_MOTOR_IN1, 1);
@@ -164,9 +157,12 @@ void stop_motor()
 // 0 - left, 1 - right
 void turn_motor(int direction)
 {
+    // pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), pwm);
+    // pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), pwm);
+
     oscillation = 0;
 
-    int target_notch_count = 190 * ENCODER_NOTCH / 360;
+    int targetNotchCount = 190 * ENCODER_NOTCH / 360;
     move_motor(3125, 3125);
 
     // Motor to turn left
@@ -196,7 +192,7 @@ void turn_motor(int direction)
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    while (oscillation < target_notch_count)
+    while (oscillation < targetNotchCount)
     {
         // wait
     }
@@ -204,6 +200,8 @@ void turn_motor(int direction)
     stop_motor();
     sleep_ms(50);
 }
+
+
 
 // Function to compute PID control signal
 float compute_pid(float setpoint, float current_value, float *integral, float *prev_error)
@@ -225,6 +223,42 @@ float compute_pid(float setpoint, float current_value, float *integral, float *p
 void update_motor_speed()
 {
     // Compute the control signals
-    pwm_left = compute_pid(setpoint_speed, actual_speed_left, &integral_left, &prev_error_left);
-    pwm_right = compute_pid(setpoint_speed, actual_speed_right, &integral_right, &prev_error_right);
+    pwmL = compute_pid(setpoint_speed, actual_speed_left, &integral_L, &prev_error_L);
+    pwmR = compute_pid(setpoint_speed, actual_speed_right, &integral_R, &prev_error_R);
 }
+
+/*
+int main() {
+    stdio_init_all();
+
+    // Initialise motor GPIO pins
+    initMotorSetup();
+
+    // Initialise motor PWM
+    initMotorPWM();
+
+    while (1) {
+        // Run at half duty cycle for 2 seconds
+        move_motor(1563);
+        sleep_ms(2000);
+
+        // Turn right for 1 second
+        turnMotor(1)
+        sleep_ms(1000);
+
+        // Run at full duty cycle for 2 seconds
+        moveMotor(3125);
+        sleep_ms(2000);
+
+        // Turn left for 1 second
+        turnMotor(0)
+        sleep_ms(1000);
+
+        // Stop for 5 seconds
+        stop_motor()
+        sleep_ms(5000);
+    }
+
+    return 0;
+}
+*/
