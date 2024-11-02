@@ -19,6 +19,7 @@
 #define PWM_MAX 3125
 
 // External variables
+extern volatile float setpoint_speed;
 extern volatile float pwmL;
 extern volatile float pwmR;
 

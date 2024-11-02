@@ -21,8 +21,11 @@
 
 // External variables
 extern volatile uint32_t oscillation;
+extern volatile double moved_distance;
 extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
+
+typedef void (*encoder_result_callback_t)(float speed, double distance);
 
 // Functions for encoders
 void encoder_init();
@@ -31,5 +34,6 @@ void encoder_pulse_callback(uint gpio, uint32_t events);
 void read_encoder_pulse(uint gpio, uint32_t events);
 void start_tracking();
 void get_speed_and_distance(int encoder, uint32_t pulse_count);
+
 
 #endif

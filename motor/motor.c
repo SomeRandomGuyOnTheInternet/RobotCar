@@ -13,7 +13,7 @@ extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
 
 // PID parameters
-float Kp = 1.0;
+float Kp = 2.0;
 float Ki = 0.01;
 float Kd = 0.01;
 
@@ -23,8 +23,7 @@ float integral_R = 0.0;
 float prev_error_L = 0.0;
 float prev_error_R = 0.0;
 
-float setpoint_speed = 15.0;
-
+volatile float setpoint_speed = 15.0;
 volatile float pwmL = 1900;
 volatile float pwmR = 1900;
 
@@ -64,22 +63,26 @@ void motor_pwm_init()
     gpio_set_function(R_MOTOR_ENB, GPIO_FUNC_PWM);
 
     // Get PWM slice and channel for ENA and ENB
-    uint sliceLeft = pwm_gpio_to_slice_num(L_MOTOR_ENA);
-    uint channelLeft = pwm_gpio_to_channel(L_MOTOR_ENA);
-    uint sliceRight = pwm_gpio_to_slice_num(R_MOTOR_ENB);
-    uint channelRight = pwm_gpio_to_channel(R_MOTOR_ENB);
+    uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
+    uint channel_left = pwm_gpio_to_channel(L_MOTOR_ENA);
+    uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
+    uint channel_right = pwm_gpio_to_channel(R_MOTOR_ENB);
+
+    // Mark unused variables
+    (void)channel_left;
+    (void)channel_right;
 
     // Set PWM frequency to 40kHz (125MHz / 3125)
-    pwm_set_wrap(sliceLeft, 3125);
-    pwm_set_wrap(sliceRight, 3125);
+    pwm_set_wrap(slice_left, 3125);
+    pwm_set_wrap(slice_right, 3125);
 
     // Set clock divider to 125
-    pwm_set_clkdiv(sliceLeft, 125);
-    pwm_set_clkdiv(sliceRight, 125);
+    pwm_set_clkdiv(slice_left, 125);
+    pwm_set_clkdiv(slice_right, 125);
 
     // Enable PWM for both motor channels
-    pwm_set_enabled(sliceLeft, true);
-    pwm_set_enabled(sliceRight, true);
+    pwm_set_enabled(slice_left, true);
+    pwm_set_enabled(slice_right, true);
 }
 
 // Function to move forward
@@ -91,18 +94,22 @@ void move_motor(float new_pwmL, float new_pwmR)
     sleep_ms(50);
     // Set both motors to output high for desired PWM
     // Get PWM slice and channel for ENA and ENB
-    uint sliceLeft = pwm_gpio_to_slice_num(L_MOTOR_ENA);
-    uint channelLeft = pwm_gpio_to_channel(L_MOTOR_ENA);
-    uint sliceRight = pwm_gpio_to_slice_num(R_MOTOR_ENB);
-    uint channelRight = pwm_gpio_to_channel(R_MOTOR_ENB);
+    uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
+    uint channel_left = pwm_gpio_to_channel(L_MOTOR_ENA);
+    uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
+    uint channel_right = pwm_gpio_to_channel(R_MOTOR_ENB);
+
+    // Mark unused variables
+    (void)channel_left;
+    (void)channel_right;
 
     // Set PWM frequency to 40kHz (125MHz / 3125)
-    pwm_set_wrap(sliceLeft, 3125);
-    pwm_set_wrap(sliceRight, 3125);
+    pwm_set_wrap(slice_left, 3125);
+    pwm_set_wrap(slice_right, 3125);
 
     // Set clock divider to 125
-    pwm_set_clkdiv(sliceLeft, 125);
-    pwm_set_clkdiv(sliceRight, 125);
+    pwm_set_clkdiv(slice_left, 125);
+    pwm_set_clkdiv(slice_right, 125);
 
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwmL);
     // sleep_ms(50);

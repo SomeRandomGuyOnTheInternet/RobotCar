@@ -3,7 +3,7 @@
 uint32_t pulse_count_left = 0;
 uint32_t pulse_count_right = 0;
 volatile uint32_t oscillation = 0;
-double moved_distance = 0.0;
+volatile double moved_distance = 0.0;
 volatile float actual_speed_left;
 volatile float actual_speed_right;
 
@@ -74,20 +74,25 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 
     moved_distance += distance;
 
-    if (encoder == 0)
+    if (encoder == LEFT_WHEEL)
     {
         actual_speed_left = speed;
+        if (pulse_count > 0)
+        {
+            printf("=====\n");
+            printf("Total distance (Left): %.2lf cm\n", moved_distance);
+            printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
+        }
     }
-    else if (encoder == 1)
+    else if (encoder == RIGHT_WHEEL)
     {
         actual_speed_right = speed;
-    }
-
-    if (pulse_count > 0) {
-        printf("=====\n");
-        printf("Total distance: %.2lf cm\n", moved_distance);
-        printf("Current speed: %.2lf cm/s\n", speed);
-        printf("=====\n");
+        if (pulse_count > 0)
+        {
+            printf("=====\n");
+            printf("Total distance (Right): %.2lf cm\n", moved_distance);
+            printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
+        }
     }
 
     return;
