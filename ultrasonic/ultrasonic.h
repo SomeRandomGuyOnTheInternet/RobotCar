@@ -7,8 +7,8 @@
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
 
-#define TRIGPIN 27
-#define ECHOPIN 26
+#define TRIGPIN 4
+#define ECHOPIN 5
 
 #define MIN_CM 10
 #define MAX_CM 100

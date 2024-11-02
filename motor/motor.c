@@ -29,7 +29,7 @@ volatile float pwm_left = 1900;
 volatile float pwm_right = 1900;
 
 // Function to initialize pins for motors
-void init_motor_setup()
+void motor_init()
 {
     // Initialize GPIO pins for L motor control
     gpio_init(L_MOTOR_IN1);
@@ -57,7 +57,7 @@ void init_motor_setup()
 }
 
 // Function to initialize PWMs for motors
-void init_motor_pwm()
+void motor_pwm_init()
 {
     // Set GPIO pins for ENA and ENB to PWM mode
     gpio_set_function(L_MOTOR_ENA, GPIO_FUNC_PWM);

@@ -40,8 +40,8 @@ void init_all()
     sleep_ms(1000);
 
     // Initialise motor pins and PWM
-    init_motor_setup();
-    init_motor_pwm();
+    motor_init();
+    motor_pwm_init();
     printf("Motor pins and PWM initialised\n");
     sleep_ms(500);
 
@@ -86,7 +86,7 @@ void test()
     struct repeating_timer timer;
     add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
 
-    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
+    kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
 
     bool obstacle_detected = false;
     double cm;
@@ -99,20 +99,21 @@ void test()
         // Read ultrasonic sensor
         cm = get_cm(state);
         // cm = 99;
-        obstacle_detected = cm < MIN_CM;
+        obstacle_detected = cm < 10;
 
         printf("----\n");
         // Control motor based on obstacle detection
         if (obstacle_detected)
         {
             printf("Obstacle detected\n");
-            stop_motor();
+            turn_motor(1);
+            
         }
         else
         {
-            double normalised = normalise(cm, MIN_CM, MAX_CM);
-            int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            move_motor(normalised_duty_cycle, normalised_duty_cycle);
+            // double normalised = normalise(cm, MIN_CM, MAX_CM);
+            // int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
+            move_motor(PWM_MIN, PWM_MIN);
         }
 
         if (cm != prev_cm) {
