@@ -98,6 +98,7 @@ double get_cm(kalman_state *state)
 {
     send_pulse();
     uint64_t sent_pulse_length = get_pulse_length();
+    // FINE TUNE DISTANCE HERE
     double measured = (sent_pulse_length / 29.0 / 2.0) - 1;
     kalman_update(state, measured);
 
