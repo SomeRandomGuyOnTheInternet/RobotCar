@@ -20,7 +20,7 @@ kalman_state *kalman_init(double q, double r, double p, double initial_value);
 void kalman_update(kalman_state *state, double measurement);
 
 void ultrasonic_init();
-void ultrasonic_interrupt_callback();
+void read_echo_pulse();
 void set_start_time(uint gpio, uint32_t events);
 void set_pulse_length(uint gpio, uint32_t events);
 void send_pulse();

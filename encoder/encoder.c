@@ -3,7 +3,7 @@
 uint32_t pulse_count_left = 0;
 uint32_t pulse_count_right = 0;
 volatile uint32_t oscillation = 0;
-double moved_distance = 0.0;
+volatile double moved_distance = 0.0;
 volatile float actual_speed_left;
 volatile float actual_speed_right;
 
@@ -40,17 +40,6 @@ bool encoder_1s_callback()
     return true;
 }
 
-void encoder_pulse_callback(uint gpio, uint32_t events)
-{
-    gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-    gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-}
-
-void start_tracking()
-{
-    moved_distance = 0;
-}
-
 void read_encoder_pulse(uint gpio, uint32_t events)
 {
     if (gpio == L_ENCODER_OUT)
@@ -66,6 +55,12 @@ void read_encoder_pulse(uint gpio, uint32_t events)
     oscillation++;
 }
 
+void start_tracking()
+{
+    moved_distance = 0;
+    return;
+}
+
 void get_speed_and_distance(int encoder, uint32_t pulse_count)
 {
     double distance_per_hole = ENCODER_CIRCUMFERENCE / ENCODER_NOTCH;
@@ -74,20 +69,25 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 
     moved_distance += distance;
 
-    if (encoder == 0)
+    if (encoder == LEFT_WHEEL)
     {
         actual_speed_left = speed;
+        if (pulse_count > 0)
+        {
+            printf("=====\n");
+            printf("Total distance (Left): %.2lf cm\n", moved_distance);
+            printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
+        }
     }
-    else if (encoder == 1)
+    else if (encoder == RIGHT_WHEEL)
     {
         actual_speed_right = speed;
-    }
-
-    if (pulse_count > 0) {
-        printf("=====\n");
-        printf("Total distance: %.2lf cm\n", moved_distance);
-        printf("Current speed: %.2lf cm/s\n", speed);
-        printf("=====\n");
+        if (pulse_count > 0)
+        {
+            printf("=====\n");
+            printf("Total distance (Right): %.2lf cm\n", moved_distance);
+            printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
+        }
     }
 
     return;
@@ -97,8 +97,8 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 //     stdio_init_all();
 
 //     // Initialise motor GPIO pins and PWM
-//     init_motor_setup();
-//     init_motor_pwm();
+//     motor_init_setup();
+//     motor_pwm_init();
 
 //     // Initialise encoder GPIO pins
 //     encoder_init();

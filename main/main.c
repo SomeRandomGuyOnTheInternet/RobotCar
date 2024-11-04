@@ -17,15 +17,15 @@ void callbacks(uint gpio, uint32_t events)
     {
     // Left wheel encoder callback
     case L_ENCODER_OUT:
-        encoder_pulse_callback(L_ENCODER_OUT, events);
+        read_encoder_pulse(L_ENCODER_OUT, events);
         break;
     // Right wheel encoder callback
     case R_ENCODER_OUT:
-        encoder_pulse_callback(R_ENCODER_OUT, events);
+        read_encoder_pulse(R_ENCODER_OUT, events);
         break;
     // Ultrasonic callback
     case ECHOPIN:
-        ultrasonic_interrupt_callback(ECHOPIN, events);
+        read_echo_pulse(ECHOPIN, events);
         break;
     default:
         break;
@@ -40,8 +40,8 @@ void init_all()
     sleep_ms(1000);
 
     // Initialise motor pins and PWM
-    init_motor_setup();
-    init_motor_pwm();
+    motor_init();
+    motor_pwm_init();
     printf("Motor pins and PWM initialised\n");
     sleep_ms(500);
 
@@ -71,13 +71,78 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
-// double normalise(double value, double min, double max) {
-//    // Ensure value is within bounds
-//     if (value < min) value = min;
-//     if (value > max) value = max;
+void station_1_test()
+{
+    printf("Starting test\n");
 
-//     return (value - min) / (max - min);
-// }
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
+
+    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
+
+    bool obstacle_detected = false;
+    double cm;
+    double prev_cm;
+
+    // GO STRAIGHT UNTIL OBSTACLE
+    while (1)
+    {
+        sleep_ms(10); // Reduced sleep for more responsive readings
+
+        // Read ultrasonic sensor
+        cm = get_cm(state);
+        obstacle_detected = cm < MIN_CM;
+
+        printf("----\n");
+        // Control motor based on obstacle detection
+        if (obstacle_detected)
+        {
+            printf("Obstacle detected\n");
+            break;
+        }
+        else
+        {
+            move_motor(pwmL, pwmR); // Apply adjusted PWM values
+            update_motor_speed();   // Adjust motor speed based on encoder feedback
+
+            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+        }
+
+        if (cm != prev_cm)
+        {
+            printf("Obstacle distance: %.2lf cm\n", cm);
+            printf("----\n");
+            prev_cm = cm;
+        }
+    }
+
+    // TURN RIGHT
+    turn_motor(RIGHT_WHEEL);
+    moved_distance = 0;
+
+    // STOP AFTER 90CM
+    while (1)
+    {
+        sleep_ms(250); // Reduced sleep for more responsive readings
+
+        if (moved_distance >= 90)
+        {
+            stop_motor();
+            printf("Station 1 complete!\n");
+            break;
+        }
+        else
+        {
+            move_motor(pwmL, pwmR); // Apply adjusted PWM values
+            update_motor_speed();   // Adjust motor speed based on encoder feedback
+
+            printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+                   setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+            printf("Moved distance: %.2f\n", moved_distance);
+        }
+    }
+}
 
 void test()
 {
@@ -98,7 +163,6 @@ void test()
 
         // Read ultrasonic sensor
         cm = get_cm(state);
-        // cm = 99;
         obstacle_detected = cm < MIN_CM;
 
         printf("----\n");
@@ -110,9 +174,7 @@ void test()
         }
         else
         {
-            // double normalised = normalise(cm, MIN_CM, MAX_CM);
-            // int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            // move_motor(PWM_MIN, PWM_MIN);
+            move_motor(PWM_MIN, PWM_MIN);
         }
 
         if (cm != prev_cm) {
@@ -129,7 +191,24 @@ int main()
     init_all();
     init_interrupts();
 
-    test();
+    station_1_test();
 
     return 0;
 }
+
+
+
+
+
+
+
+
+// double normalise(double value, double min, double max) {
+//    // Ensure value is within bounds
+//     if (value < min) value = min;
+//     if (value > max) value = max;
+
+//     return (value - min) / (max - min);
+// }
+// double normalised = normalise(cm, MIN_CM, MAX_CM);
+// int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));

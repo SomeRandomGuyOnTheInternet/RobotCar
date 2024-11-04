@@ -39,8 +39,8 @@ void gy511_read_accel(int16_t *x, int16_t *y, int16_t *z) {
 //     sleep_ms(1000);
 
 //     // Initialise motor GPIO pins and PWM
-//     init_motor_setup();
-//     init_motor_pwm();
+//     motor_init_setup();
+//     motor_pwm_init();
 
 //     // Initialise ultrasonic sensor
 //     gy511_init();
