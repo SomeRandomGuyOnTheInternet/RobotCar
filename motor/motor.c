@@ -9,8 +9,8 @@
 #include "math.h"
 #include "../encoder/encoder.h"
 
-extern volatile float actual_speed_left;
-extern volatile float actual_speed_right;
+extern volatile float actual_speed_L;
+extern volatile float actual_speed_R;
 
 // PID parameters
 float Kp = 2.00;

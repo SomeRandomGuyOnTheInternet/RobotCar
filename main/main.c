@@ -78,7 +78,7 @@ void station_1_test()
     struct repeating_timer timer;
     add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
 
-    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
+    kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
 
     bool obstacle_detected = false;
     double cm;
@@ -111,8 +111,8 @@ void station_1_test()
 
         if (cm != prev_cm)
         {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
+            // printf("Obstacle distance: %.2lf cm\n", cm);
+            // printf("----\n");
             prev_cm = cm;
         }
     }
@@ -137,9 +137,9 @@ void station_1_test()
             move_motor(pwmL, pwmR); // Apply adjusted PWM values
             update_motor_speed();   // Adjust motor speed based on encoder feedback
 
-            printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-                   setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-            printf("Moved distance: %.2f\n", moved_distance);
+            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+            // printf("Moved distance: %.2f\n", moved_distance);
         }
     }
 }
