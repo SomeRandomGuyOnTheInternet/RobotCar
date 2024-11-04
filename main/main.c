@@ -71,13 +71,13 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
-double normalise(double value, double min, double max) {
-   // Ensure value is within bounds
-    if (value < min) value = min;
-    if (value > max) value = max;
+// double normalise(double value, double min, double max) {
+//    // Ensure value is within bounds
+//     if (value < min) value = min;
+//     if (value > max) value = max;
 
-    return (value - min) / (max - min);
-}
+//     return (value - min) / (max - min);
+// }
 
 void test()
 {
@@ -110,9 +110,9 @@ void test()
         }
         else
         {
-            double normalised = normalise(cm, MIN_CM, MAX_CM);
-            int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
-            move_motor(normalised_duty_cycle, normalised_duty_cycle);
+            // double normalised = normalise(cm, MIN_CM, MAX_CM);
+            // int normalised_duty_cycle = (int)(PWM_MIN + ((PWM_MAX - PWM_MIN) * normalised));
+            // move_motor(PWM_MIN, PWM_MIN);
         }
 
         if (cm != prev_cm) {
