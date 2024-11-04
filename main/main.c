@@ -87,7 +87,7 @@ void station_1_test()
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
-        sleep_ms(10); // Reduced sleep for more responsive readings
+        sleep_ms(1); // Reduced sleep for more responsive readings
 
         // Read ultrasonic sensor
         cm = get_cm(state);
@@ -140,47 +140,6 @@ void station_1_test()
             printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
                    setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
             printf("Moved distance: %.2f\n", moved_distance);
-        }
-    }
-}
-
-void test()
-{
-    printf("Starting test\n");
-
-    struct repeating_timer timer;
-    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
-
-    kalman_state *state = kalman_init(1.0, 0.5, 0.1, 100.0);
-
-    bool obstacle_detected = false;
-    double cm;
-    double prev_cm;
-
-    while (1)
-    {
-        sleep_ms(250); // Reduced sleep for more responsive readings
-
-        // Read ultrasonic sensor
-        cm = get_cm(state);
-        obstacle_detected = cm < MIN_CM;
-
-        printf("----\n");
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            printf("Obstacle detected\n");
-            stop_motor();
-        }
-        else
-        {
-            move_motor(PWM_MIN, PWM_MIN);
-        }
-
-        if (cm != prev_cm) {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
-            prev_cm = cm;
         }
     }
 }
