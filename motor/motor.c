@@ -13,7 +13,7 @@ extern volatile float actual_speed_L;
 extern volatile float actual_speed_R;
 
 // PID parameters
-float Kp = 2.00;
+float Kp = 1.6;
 float Ki = 0.05;
 float Kd = 0.01;
 
@@ -23,9 +23,9 @@ float integral_R = 0.0;
 float prev_error_L = 0.0;
 float prev_error_R = 0.0;
 
-volatile float setpoint_speed = 15.0;
-volatile float pwmL = 1900;
-volatile float pwmR = 1900;
+volatile float setpoint_speed = 15;
+volatile float pwmL = 1750;
+volatile float pwmR = 1650;
 
 // Function to initialize pins for motors
 void motor_init()
@@ -211,7 +211,7 @@ void turn_motor(int direction)
 
 
 // Function to compute adjusted PWM based on PID control for speed
-float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error)
+/*float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error)
 {
     // Calculate the speed error
     float error = setpoint_speed - current_speed;
@@ -236,7 +236,38 @@ float compute_pid(float setpoint_speed, float current_speed, float current_pwm, 
     *prev_error = error;
 
     return adjusted_pwm;
+}*/
+
+float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error) {
+    // Calculate the speed error
+    float error = setpoint_speed - current_speed;
+
+    // Update the integral term with the current error
+    *integral += error;
+
+    // Prevent integral windup
+    if (*integral > 100) *integral = 100;
+    if (*integral < -100) *integral = -100;
+
+    // Calculate the derivative term
+    float derivative = error - *prev_error;
+
+    // Compute the PID adjustment
+    float adjustment = Kp * error + Ki * (*integral) + Kd * derivative;
+
+    // Calculate the new PWM value by adding the adjustment to the current PWM
+    float adjusted_pwm = current_pwm + adjustment;
+
+    // Ensure the PWM stays within bounds
+    if (adjusted_pwm > 2500) adjusted_pwm = 2500;
+    if (adjusted_pwm < 0) adjusted_pwm = 0;
+
+    // Store the current error for the next cycle
+    *prev_error = error;
+
+    return adjusted_pwm;
 }
+
 
 
 // Call this function at a regular interval, e.g., every 100ms to stabilise car
