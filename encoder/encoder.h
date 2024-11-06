@@ -19,17 +19,20 @@
 #define LEFT_WHEEL 0
 #define RIGHT_WHEEL 1
 
+typedef void (*encoder_read_callback)(uint gpio, uint32_t events);
+
 // External variables
 extern volatile uint32_t oscillation;
+extern volatile double total_average_distance;
 extern volatile float actual_speed_left;
 extern volatile float actual_speed_right;
-extern volatile double moved_distance;
+
 
 // Functions for encoders
 void encoder_init();
-bool encoder_1s_callback();
+bool encoder_set_distance_speed_callback(struct repeating_timer *t);
+void set_distance_speed(int encoder, uint32_t pulse_count, int interval);
 void read_encoder_pulse(uint gpio, uint32_t events);
 void start_tracking();
-void get_speed_and_distance(int encoder, uint32_t pulse_count);
 
 #endif

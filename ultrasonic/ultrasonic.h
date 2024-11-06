@@ -13,6 +13,8 @@
 #define MIN_CM 10
 #define MAX_CM 100
 
+typedef void (*echo_read_callback)(uint gpio, uint32_t events);
+
 typedef struct kalman_state_ kalman_state;
 extern volatile bool obstacle_detected;
 

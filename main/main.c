@@ -76,7 +76,8 @@ void station_1_test()
     printf("Starting test\n");
 
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
+    int interval = 1000;
+    add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
 
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
 
@@ -87,10 +88,13 @@ void station_1_test()
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
-        sleep_ms(1); // Reduced sleep for more responsive readings
+        sleep_ms(100); // Reduced sleep for more responsive readings
 
         // Read ultrasonic sensor
-        cm = get_cm(state);
+        for (int i = 0; i < 20; i++)
+        {
+            cm = get_cm(state);
+        }
         obstacle_detected = cm < MIN_CM;
 
         printf("----\n");
@@ -111,22 +115,22 @@ void station_1_test()
 
         if (cm != prev_cm)
         {
-            // printf("Obstacle distance: %.2lf cm\n", cm);
-            // printf("----\n");
+            printf("Obstacle distance: %.2lf cm\n", cm);
+            printf("----\n");
             prev_cm = cm;
         }
     }
 
     // TURN RIGHT
     turn_motor(RIGHT_WHEEL);
-    moved_distance = 0;
+    total_average_distance = 0;
 
     // STOP AFTER 90CM
     while (1)
     {
         sleep_ms(250); // Reduced sleep for more responsive readings
 
-        if (moved_distance >= 90)
+        if (total_average_distance >= 90)
         {
             stop_motor();
             printf("Station 1 complete!\n");
