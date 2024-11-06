@@ -40,10 +40,10 @@ void init_all()
     sleep_ms(1000);
 
     // Initialise motor pins and PWM
-    // motor_init();
-    // motor_pwm_init();
-    // printf("Motor pins and PWM initialised\n");
-    // sleep_ms(500);
+    motor_init();
+    motor_pwm_init();
+    printf("Motor pins and PWM initialised\n");
+    sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
@@ -121,21 +121,27 @@ void station_1_test()
     // turn_motor(RIGHT_WHEEL);
     // total_average_distance = 0;
 
-    // STOP AFTER 90CM
+    // // STOP AFTER 90CM
+    // while (1)
+    // {
+    //     sleep_ms(250); // Reduced sleep for more responsive readings
+
+    //     if (total_average_distance >= 90)
+    //     {
+    //         stop_motor();
+    //         printf("Station 1 complete!\n");
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         update_motor_speed(); // Adjust motor speed based on encoder feedback
+    //     }
+    // }
+
     while (1)
     {
-        sleep_ms(250); // Reduced sleep for more responsive readings
-
-        if (total_average_distance >= 90)
-        {
-            stop_motor();
-            printf("Station 1 complete!\n");
-            break;
-        }
-        else
-        {
-            update_motor_speed();   // Adjust motor speed based on encoder feedback
-        }
+        sleep_ms(1000); // Reduced sleep for more responsive readings
+        turn_motor(RIGHT_WHEEL);
     }
 }
 
@@ -149,13 +155,6 @@ int main()
 
     return 0;
 }
-
-
-
-
-
-
-
 
 // double normalise(double value, double min, double max) {
 //    // Ensure value is within bounds

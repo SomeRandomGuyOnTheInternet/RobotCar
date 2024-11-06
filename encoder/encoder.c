@@ -85,7 +85,6 @@ void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
         {
             actual_distance_left += distance;
             actual_speed_left = speed;
-            total_average_distance += distance;
             printf("=====\n");
             printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
             printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
@@ -99,13 +98,13 @@ void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
         {
             actual_distance_right += distance;
             actual_speed_right = speed;
-            total_average_distance += distance;
             printf("=====\n");
             printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
             printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
         }
     }
 
+    total_average_distance += (actual_distance_left + actual_distance_right) / 2;
     total_average_speed = (actual_speed_left + actual_speed_left) / 2;
 
     printf("=====\n");
