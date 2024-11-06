@@ -171,7 +171,7 @@ void turn_motor(int direction)
 
     oscillation = 0;
 
-    int targetNotchCount = ENCODER_NOTCH;
+    int target_notch_count = 287 * ENCODER_NOTCH / 360;
     move_motor(2500, 2500);
 
     // Motor to turn left
@@ -201,7 +201,7 @@ void turn_motor(int direction)
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    while (oscillation < targetNotchCount)
+    while (oscillation < target_notch_count)
     {
         // wait
     }
