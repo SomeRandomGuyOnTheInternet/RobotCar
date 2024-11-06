@@ -1,14 +1,14 @@
 #include "encoder.h"
 
-const double DISTANCE_PER_HOLE = (2 * ENCODER_RADIUS * PI) / ENCODER_NOTCH;
+const double DISTANCE_PER_HOLE = (2 * PI * ENCODER_RADIUS) / ENCODER_NOTCH;
 
 uint32_t pulse_count_left = 0;
 uint32_t pulse_count_right = 0;
 volatile uint32_t oscillation = 0;
 volatile double total_average_distance = 0.0;
 double total_average_speed = 0.0;
-float actual_distance_left = 0.0;
-float actual_distance_right = 0.0;
+volatile float actual_distance_left = 0.0;
+volatile float actual_distance_right = 0.0;
 volatile float actual_speed_left = 0.0;
 volatile float actual_speed_right = 0.0;
 
@@ -38,8 +38,8 @@ bool encoder_set_distance_speed_callback(struct repeating_timer *t)
 {
     int *interval = (int *)t->user_data;
 
-    set_distance_speed(LEFT_WHEEL, pulse_count_left, *interval);
-    set_distance_speed(RIGHT_WHEEL, pulse_count_right, *interval);
+    set_distance_speed(LEFT_WHEEL, *interval);
+    set_distance_speed(RIGHT_WHEEL, *interval);
 
     pulse_count_left = 0;
     pulse_count_right = 0;
@@ -74,46 +74,42 @@ void start_tracking()
     return;
 }
 
-void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
+void set_distance_speed(int encoder, int interval_ms)
 {
-    double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count);
-    double speed = distance / (interval_ms / 1000.0);
-
     if (encoder == LEFT_WHEEL)
     {
-        if (pulse_count > 0)
+        if (pulse_count_left > 0)
         {
+            double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count_left);
             actual_distance_left += distance;
-            actual_speed_left = speed;
+            actual_speed_left = distance / (interval_ms / 1000.0);
             printf("=====\n");
             printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
             printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
-
         }
     }
     else if (encoder == RIGHT_WHEEL)
     {
-        actual_speed_right = speed;
-        if (pulse_count > 0)
+        if (pulse_count_right > 0)
         {
+            double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count_right);
             actual_distance_right += distance;
-            actual_speed_right = speed;
+            actual_speed_right = distance / (interval_ms / 1000.0);
             printf("=====\n");
             printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
             printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
         }
     }
 
-    total_average_distance += (actual_distance_left + actual_distance_right) / 2;
+    total_average_distance = (actual_distance_left + actual_distance_right) / 2;
     total_average_speed = (actual_speed_left + actual_speed_left) / 2;
 
     printf("=====\n");
     printf("Total distance (total): %.2lf cm\n", total_average_distance);
-    printf("Current speed (total): %.2lf cm /s\n", total_average_speed);
+    printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
 
     return;
 }
-
 
 // int main() {
 //     stdio_init_all();

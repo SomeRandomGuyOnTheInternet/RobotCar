@@ -95,12 +95,14 @@ void gradual_start(float target_pwmL, float target_pwmR, float increment) {
 // Function to run a straight movement test with gradual start and balancing
 void run_straight_test() {
     init_all();
-    init_interrupts();
-    setpoint_speed = 12.0;
+    setpoint_speed = 15.0;
 
     struct repeating_timer timer;
     int interval = 100;
     add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
+
+    printf("Starting gradual ramp-up...\n");
+    gradual_start(pwmL, pwmR, 10.0);
 
     printf("Starting straight movement test...\n");
     while (1) {
@@ -109,15 +111,27 @@ void run_straight_test() {
         
         move_motor(pwmL, pwmR);
 
+        if (total_average_distance >= 90)
+        {
+            stop_motor();
+            printf("Station 1 complete!\n");
+            break;
+        }
+
         printf("Target Speed: %.2f | Left Speed: %.2f | Right Speed: %.2f | PWM Left: %.2f | PWM Right: %.2f\n",
                setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
 
         sleep_ms(100);
     }
+
+    while (1) {
+        turn_motor(RIGHT_WHEEL);
+        sleep_ms(1000);
+    }
 }
 
 
-void station_1_test()
+void station_1_run()
 {
     printf("Starting test\n");
 
@@ -131,63 +145,55 @@ void station_1_test()
     double cm, prev_cm;
 
     // GO STRAIGHT UNTIL OBSTACLE
-    // while (1)
-    // {
-    //     // Read ultrasonic sensor
-    //     for (int i = 0; i < 20; i++)
-    //     {
-    //         cm = get_cm(state);
-    //     }
-    //     obstacle_detected = cm < MIN_CM;
-
-    //     printf("----\n");
-    //     // Control motor based on obstacle detection
-    //     if (obstacle_detected)
-    //     {
-    //         printf("Obstacle detected\n");
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         update_motor_speed();   // Adjust motor speed based on encoder feedback
-
-    //         // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-    //         //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-    //     }
-
-    //     if (cm != prev_cm)
-    //     {
-    //         printf("Obstacle distance: %.2lf cm\n", cm);
-    //         printf("----\n");
-    //         prev_cm = cm;
-    //     }
-    // }
-
-    // // TURN RIGHT
-    // turn_motor(RIGHT_WHEEL);
-    // total_average_distance = 0;
-
-    // // STOP AFTER 90CM
-    // while (1)
-    // {
-    //     sleep_ms(250); // Reduced sleep for more responsive readings
-
-    //     if (total_average_distance >= 90)
-    //     {
-    //         stop_motor();
-    //         printf("Station 1 complete!\n");
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         update_motor_speed(); // Adjust motor speed based on encoder feedback
-    //     }
-    // }
-
     while (1)
     {
-        sleep_ms(1000); // Reduced sleep for more responsive readings
-        turn_motor(RIGHT_WHEEL);
+        // Read ultrasonic sensor
+        for (int i = 0; i < 20; i++)
+        {
+            cm = get_cm(state);
+        }
+        obstacle_detected = cm < MIN_CM;
+
+        printf("----\n");
+        // Control motor based on obstacle detection
+        if (obstacle_detected)
+        {
+            printf("Obstacle detected\n");
+            stop_motor();
+            sleep_ms(1000);
+            break;
+        }
+        else
+        {
+            move_motor(1625, 1600);
+        }
+
+        if (cm != prev_cm)
+        {
+            printf("Obstacle distance: %.2lf cm\n", cm);
+            printf("----\n");
+            prev_cm = cm;
+        }
+    }
+
+    // TURN RIGHT
+    turn_motor(RIGHT_WHEEL);
+    sleep_ms(1000);
+    total_average_distance = 0;
+
+    // STOP AFTER 90CM
+    while (1)
+    {
+        if (total_average_distance >= 90)
+        {
+            stop_motor();
+            printf("Station 1 complete!\n");
+            break;
+        }
+        else
+        {
+            move_motor(1625, 1600);
+        }
     }
 }
 
@@ -195,7 +201,13 @@ int main()
 {
     // Init all required
 
-    run_straight_test();
+    station_1_run();
+
+    while (1)
+    {
+        tight_loop_contents();
+    }
+    
 
     return 0;
 }
