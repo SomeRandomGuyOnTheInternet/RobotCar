@@ -90,40 +90,23 @@ void gradual_start(float target_pwmL, float target_pwmR, float increment) {
     }
 }
 
-int balance_counter = 0;
-
-void initial_balance_adjustment() {
-    float correction = 1; // Adjust step size for subtle balance correction
-
-    if (balance_counter % 5 == 0) {
-        if (actual_speed_left < actual_speed_right) {
-            pwmL += correction;
-        } else if (actual_speed_right < actual_speed_left) {
-            pwmR += correction;
-        }
-    }
-
-    balance_counter++;
-}
-
 
 
 // Function to run a straight movement test with gradual start and balancing
 void run_straight_test() {
     init_all();
-    setpoint_speed = 15.0;
+    init_interrupts();
+    setpoint_speed = 12.0;
 
     struct repeating_timer timer;
     int interval = 100;
     add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
 
-    printf("Starting gradual ramp-up...\n");
-    gradual_start(pwmL, pwmR, 10.0);
-
     printf("Starting straight movement test...\n");
     while (1) {
-        initial_balance_adjustment();
+        
         update_motor_speed();
+        
         move_motor(pwmL, pwmR);
 
         printf("Target Speed: %.2f | Left Speed: %.2f | Right Speed: %.2f | PWM Left: %.2f | PWM Right: %.2f\n",
@@ -211,8 +194,6 @@ void station_1_test()
 int main()
 {
     // Init all required
-    init_all();
-    init_interrupts();
 
     run_straight_test();
 

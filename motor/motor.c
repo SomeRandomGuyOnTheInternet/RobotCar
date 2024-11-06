@@ -15,9 +15,9 @@ extern volatile float actual_speed_right;
 
 
 // PID parameters
-float Kp = 2.0;
-float Ki = 0.05;
-float Kd = 0.02;
+float Kp = 2;
+float Ki = 0.1;
+float Kd = 0.4;
 
 // PID control variables
 float integral_L = 0.0;
@@ -26,7 +26,7 @@ float prev_error_L = 0.0;
 float prev_error_R = 0.0;
 
 volatile float setpoint_speed = 15;
-volatile float pwmL = 1640;
+volatile float pwmL = 1800;
 volatile float pwmR = 1600;
 
 // Function to initialize pins for motors
@@ -211,24 +211,23 @@ void turn_motor(int direction)
 }
 
 // Function to compute PID and update PWM directly within the correct range
-float compute_pid(float setpoint, float current, float *integral, float *prev_error, float Kp, float Ki, float Kd) {
-    float error = setpoint - current;
+float compute_pid(float setpoint, float actual_speed, float current_pwm, float *integral, float *prev_error) {
+    float error = setpoint - actual_speed;
     *integral += error;
+    if (*integral > 100) *integral = 100;
+    if (*integral < -100) *integral = -100;
     float derivative = error - *prev_error;
     float adjustment = Kp * error + Ki * (*integral) + Kd * derivative;
-
     *prev_error = error;
-    return adjustment;
+
+    float new_pwm = current_pwm + adjustment;
+    return (new_pwm > 3125) ? 3125 : (new_pwm < 1600) ? 1600 : new_pwm;
 }
 
-// Call this function at a regular interval to stabilize the car
 void update_motor_speed() {
-    pwmL += compute_pid(setpoint_speed, actual_speed_left, &integral_L, &prev_error_L, Kp, Ki, Kd);
-    pwmR += compute_pid(setpoint_speed, actual_speed_right, &integral_R, &prev_error_R, Kp, Ki, Kd);
-
-    pwmL = (pwmL > 3125) ? 3125 : (pwmL < 1600) ? 1600 : pwmL;
-    pwmR = (pwmR > 3125) ? 3125 : (pwmR < 1600) ? 1600 : pwmR;
-
+    pwmL = compute_pid(setpoint_speed, actual_speed_left, pwmL, &integral_L, &prev_error_L);
+    pwmR = compute_pid(setpoint_speed, actual_speed_right, pwmR, &integral_R, &prev_error_R);
+    
 }
 
 
