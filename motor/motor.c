@@ -9,13 +9,15 @@
 #include "math.h"
 #include "../encoder/encoder.h"
 
-extern volatile float actual_speed_L;
-extern volatile float actual_speed_R;
+
+extern volatile float actual_speed_left;
+extern volatile float actual_speed_right;
+
 
 // PID parameters
-float Kp = 1.6;
+float Kp = 1.9;
 float Ki = 0.05;
-float Kd = 0.01;
+float Kd = 0.02;
 
 // PID control variables
 float integral_L = 0.0;
@@ -208,78 +210,38 @@ void turn_motor(int direction)
     sleep_ms(50);
 }
 
-// Function to compute adjusted PWM based on PID control for speed
-/*float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error)
-{
-    // Calculate the speed error
+// Function to compute PID and update PWM directly within the correct range
+float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error) {
     float error = setpoint_speed - current_speed;
 
-    // Update the integral term with the current error
-    *integral += error;
-
-    // Calculate the derivative term
-    float derivative = error - *prev_error;
-
-    // Compute the PID adjustment
-    float adjustment = Kp * error + Ki * (*integral) + Kd * derivative;
-
-    // Calculate the new PWM value by adding the adjustment to the current PWM
-    float adjusted_pwm = current_pwm + adjustment;
-
-    // Ensure the PWM stays within bounds (assuming 0 to 255 for PWM range)
-    if (adjusted_pwm > PWM_MAX) adjusted_pwm = PWM_MAX;
-    if (adjusted_pwm < 0) adjusted_pwm = 0;
-
-    // Store the current error for the next cycle
-    *prev_error = error;
-
-    return adjusted_pwm;
-}*/
-
-float compute_pid(float setpoint_speed, float current_speed, float current_pwm, float *integral, float *prev_error)
-{
-    // Calculate the speed error
-    float error = setpoint_speed - current_speed;
-
-    // Update the integral term with the current error
     *integral += error;
 
     // Prevent integral windup
-    if (*integral > 100)
-        *integral = 100;
-    if (*integral < -100)
-        *integral = -100;
+    if (*integral > 100) *integral = 100;
+    if (*integral < -100) *integral = -100;
 
-    // Calculate the derivative term
     float derivative = error - *prev_error;
 
-    // Compute the PID adjustment
     float adjustment = Kp * error + Ki * (*integral) + Kd * derivative;
 
-    // Calculate the new PWM value by adding the adjustment to the current PWM
     float adjusted_pwm = current_pwm + adjustment;
 
-    // Ensure the PWM stays within bounds
-    if (adjusted_pwm > 2500)
-        adjusted_pwm = 2500;
-    if (adjusted_pwm < 0)
-        adjusted_pwm = 0;
+    // Ensure the PWM stays within bounds (1600 to 3125)
+    if (adjusted_pwm > 3125) adjusted_pwm = 3125;
+    if (adjusted_pwm < 1600) adjusted_pwm = 1600;
 
-    // Store the current error for the next cycle
     *prev_error = error;
 
     return adjusted_pwm;
 }
 
-// Call this function at a regular interval, e.g., every 100ms to stabilise car
-void update_motor_speed()
-{
-    // Compute the control signals
+// Call this function at a regular interval to stabilize the car
+void update_motor_speed() {
     pwmL = compute_pid(setpoint_speed, actual_speed_left, pwmL, &integral_L, &prev_error_L);
     pwmR = compute_pid(setpoint_speed, actual_speed_right, pwmR, &integral_R, &prev_error_R);
-
-    move_motor(pwmL, pwmR);
 }
+
+
 
 /*
 int main() {

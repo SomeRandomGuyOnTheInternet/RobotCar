@@ -11,6 +11,7 @@
 #include "motor.h"
 #include "gy511.h"
 
+
 void callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
@@ -70,6 +71,68 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
+
+// Function to gradually start the motors
+void gradual_start(float target_pwmL, float target_pwmR, float increment) {
+    float start_pwmL = PWM_MIN;
+    float start_pwmR = PWM_MIN;
+
+    while (start_pwmL < target_pwmL || start_pwmR < target_pwmR) {
+        if (start_pwmL < target_pwmL) {
+            start_pwmL += increment;
+        }
+        if (start_pwmR < target_pwmR) {
+            start_pwmR += increment;
+        }
+
+        move_motor(start_pwmL, start_pwmR);
+        sleep_ms(50);
+    }
+}
+
+int balance_counter = 0;
+
+void initial_balance_adjustment() {
+    float correction = 1; // Adjust step size for subtle balance correction
+
+    if (balance_counter % 5 == 0) {
+        if (actual_speed_left < actual_speed_right) {
+            pwmL += correction;
+        } else if (actual_speed_right < actual_speed_left) {
+            pwmR += correction;
+        }
+    }
+
+    balance_counter++;
+}
+
+
+
+// Function to run a straight movement test with gradual start and balancing
+void run_straight_test() {
+    init_all();
+    setpoint_speed = 15.0;
+
+    struct repeating_timer timer;
+    int interval = 100;
+    add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
+
+    printf("Starting gradual ramp-up...\n");
+    gradual_start(pwmL, pwmR, 10.0);
+
+    printf("Starting straight movement test...\n");
+    while (1) {
+        initial_balance_adjustment();
+        update_motor_speed();
+        move_motor(pwmL, pwmR);
+
+        printf("Target Speed: %.2f | Left Speed: %.2f | Right Speed: %.2f | PWM Left: %.2f | PWM Right: %.2f\n",
+               setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+
+        sleep_ms(100);
+    }
+}
+
 
 void station_1_test()
 {
@@ -151,7 +214,7 @@ int main()
     init_all();
     init_interrupts();
 
-    station_1_test();
+    run_straight_test();
 
     return 0;
 }
