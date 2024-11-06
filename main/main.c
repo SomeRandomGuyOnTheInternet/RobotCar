@@ -75,6 +75,8 @@ void station_1_test()
 {
     printf("Starting test\n");
 
+    setpoint_speed = 7.5;
+
     struct repeating_timer timer;
     int interval = 1000;
     add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
@@ -82,14 +84,13 @@ void station_1_test()
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
 
     bool obstacle_detected = false;
-    double cm;
-    double prev_cm;
+    double cm, prev_cm;
+
+    move_motor(2000, 2000); // Apply adjusted PWM values
 
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
-        sleep_ms(100); // Reduced sleep for more responsive readings
-
         // Read ultrasonic sensor
         for (int i = 0; i < 20; i++)
         {
@@ -102,15 +103,14 @@ void station_1_test()
         if (obstacle_detected)
         {
             printf("Obstacle detected\n");
+            stop_motor();
             break;
         }
         else
         {
-            move_motor(pwmL, pwmR); // Apply adjusted PWM values
             update_motor_speed();   // Adjust motor speed based on encoder feedback
-
-            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+            printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+                   setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
         }
 
         if (cm != prev_cm)
@@ -121,31 +121,38 @@ void station_1_test()
         }
     }
 
-    // TURN RIGHT
-    turn_motor(RIGHT_WHEEL);
-    total_average_distance = 0;
-
-    // STOP AFTER 90CM
-    while (1)
-    {
-        sleep_ms(250); // Reduced sleep for more responsive readings
-
-        if (total_average_distance >= 90)
-        {
-            stop_motor();
-            printf("Station 1 complete!\n");
-            break;
-        }
-        else
-        {
-            move_motor(pwmL, pwmR); // Apply adjusted PWM values
-            update_motor_speed();   // Adjust motor speed based on encoder feedback
-
-            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-            // printf("Moved distance: %.2f\n", moved_distance);
-        }
+    while (1) {
+        turn_motor(RIGHT_WHEEL);
+        printf("Turning right in 1 second\n");
+        printf("----\n");
+        sleep_ms(1000);
     }
+
+    // // TURN RIGHT
+    // turn_motor(RIGHT_WHEEL);
+    // total_average_distance = 0;
+
+    // // STOP AFTER 90CM
+    // while (1)
+    // {
+    //     sleep_ms(250); // Reduced sleep for more responsive readings
+
+    //     if (total_average_distance >= 90)
+    //     {
+    //         stop_motor();
+    //         printf("Station 1 complete!\n");
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         move_motor(pwmL, pwmR); // Apply adjusted PWM values
+    //         update_motor_speed();   // Adjust motor speed based on encoder feedback
+
+    //         // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+    //         //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+    //         // printf("Moved distance: %.2f\n", moved_distance);
+    //     }
+    // }
 }
 
 int main()

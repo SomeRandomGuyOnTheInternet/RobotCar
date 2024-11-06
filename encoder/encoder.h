@@ -5,6 +5,8 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
+#define PI 3.14159
+
 // Define encoder pins
 #define L_ENCODER_POW 17 // GPIO pin for L encoder power
 #define L_ENCODER_OUT 16 // GPIO pin for L encoder output
@@ -15,6 +17,7 @@
 #define ENCODER_NOTCH 20.0
 #define ENCODER_CIRCUMFERENCE 8.5
 #define WHEEL_CIRCUMFERENCE 22.0
+#define WHEEL_BASE 15.0
 
 #define LEFT_WHEEL 0
 #define RIGHT_WHEEL 1

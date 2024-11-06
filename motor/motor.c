@@ -169,7 +169,13 @@ void turn_motor(int direction)
 
     oscillation = 0;
 
-    int targetNotchCount = ENCODER_NOTCH;
+    // Calculate the turning circle circumference
+    double turning_circle_circumference = PI * WHEEL_BASE;
+    // Calculate the distance each wheel needs to travel for a 90-degree turn
+    double turn_distance = turning_circle_circumference / 4.0;
+    // Calculate the target number of notches needed for a 90-degree turn
+    double target_notch_count = (turn_distance / WHEEL_CIRCUMFERENCE) * ENCODER_NOTCH;
+;
     move_motor(3125, 3125);
 
     // Motor to turn left
@@ -199,7 +205,7 @@ void turn_motor(int direction)
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    while (oscillation < targetNotchCount)
+    while (oscillation < target_notch_count)
     {
         // wait
     }
