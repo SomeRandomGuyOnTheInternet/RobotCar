@@ -87,7 +87,7 @@ void station_1_test()
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
-        sleep_ms(1); // Reduced sleep for more responsive readings
+        sleep_ms(100); // Reduced sleep for more responsive readings
 
         // Read ultrasonic sensor
         cm = get_cm(state);
@@ -98,7 +98,7 @@ void station_1_test()
         if (obstacle_detected)
         {
             printf("Obstacle detected\n");
-            break;
+            // break;
         }
         else
         {
@@ -111,8 +111,8 @@ void station_1_test()
 
         if (cm != prev_cm)
         {
-            // printf("Obstacle distance: %.2lf cm\n", cm);
-            // printf("----\n");
+            printf("Obstacle distance: %.2lf cm\n", cm);
+            printf("----\n");
             prev_cm = cm;
         }
     }

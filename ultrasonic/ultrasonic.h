@@ -6,6 +6,7 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
+// #include "motor.h"
 
 #define TRIGPIN 7
 #define ECHOPIN 6

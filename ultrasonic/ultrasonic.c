@@ -117,7 +117,7 @@ double get_cm(kalman_state *state)
 //     sleep_ms(1000);
 
 //     // Initialise motor GPIO pins and PWM
-//     motor_init_setup();
+//     motor_init();
 //     motor_pwm_init();
 
 //     // Initialise ultrasonic sensor
