@@ -13,8 +13,9 @@
 
 // Define encoder disk specs
 #define ENCODER_NOTCH 20.0
-#define ENCODER_CIRCUMFERENCE 8.5
+#define ENCODER_RADIUS 1.25
 #define WHEEL_CIRCUMFERENCE 22.0
+#define PI 3.14159265
 
 #define LEFT_WHEEL 0
 #define RIGHT_WHEEL 1

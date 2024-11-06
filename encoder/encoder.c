@@ -1,6 +1,6 @@
 #include "encoder.h"
 
-const double DISTANCE_PER_HOLE = ENCODER_CIRCUMFERENCE / ENCODER_NOTCH;
+const double DISTANCE_PER_HOLE = (2 * ENCODER_RADIUS * PI) / ENCODER_NOTCH;
 
 uint32_t pulse_count_left = 0;
 uint32_t pulse_count_right = 0;
@@ -76,7 +76,7 @@ void start_tracking()
 
 void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
 {
-    double distance = DISTANCE_PER_HOLE * pulse_count;
+    double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count);
     double speed = distance / (interval_ms / 1000.0);
 
     if (encoder == LEFT_WHEEL)
@@ -85,6 +85,7 @@ void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
         {
             actual_distance_left += distance;
             actual_speed_left = speed;
+            total_average_distance += distance;
             printf("=====\n");
             printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
             printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
@@ -98,18 +99,18 @@ void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
         {
             actual_distance_right += distance;
             actual_speed_right = speed;
+            total_average_distance += distance;
             printf("=====\n");
             printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
             printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
         }
     }
 
-    total_average_distance = (actual_distance_left + actual_distance_right) / 2;
-    total_average_speed = (actual_distance_left + actual_distance_right) / 2;
+    total_average_speed = (actual_speed_left + actual_speed_left) / 2;
 
-    // printf("=====\n");
-    // printf("Total distance (total): %.2lf cm\n", total_average_distance);
-    // printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
+    printf("=====\n");
+    printf("Total distance (total): %.2lf cm\n", total_average_distance);
+    printf("Current speed (total): %.2lf cm /s\n", total_average_speed);
 
     return;
 }

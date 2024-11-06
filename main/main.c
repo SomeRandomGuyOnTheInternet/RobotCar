@@ -40,10 +40,10 @@ void init_all()
     sleep_ms(1000);
 
     // Initialise motor pins and PWM
-    motor_init();
-    motor_pwm_init();
-    printf("Motor pins and PWM initialised\n");
-    sleep_ms(500);
+    // motor_init();
+    // motor_pwm_init();
+    // printf("Motor pins and PWM initialised\n");
+    // sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
@@ -82,45 +82,44 @@ void station_1_test()
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
 
     bool obstacle_detected = false;
-    double cm;
-    double prev_cm;
+    double cm, prev_cm;
 
     // GO STRAIGHT UNTIL OBSTACLE
-    while (1)
-    {
-        // Read ultrasonic sensor
-        for (int i = 0; i < 20; i++)
-        {
-            cm = get_cm(state);
-        }
-        obstacle_detected = cm < MIN_CM;
+    // while (1)
+    // {
+    //     // Read ultrasonic sensor
+    //     for (int i = 0; i < 20; i++)
+    //     {
+    //         cm = get_cm(state);
+    //     }
+    //     obstacle_detected = cm < MIN_CM;
 
-        printf("----\n");
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            printf("Obstacle detected\n");
-            break;
-        }
-        else
-        {
-            update_motor_speed();   // Adjust motor speed based on encoder feedback
+    //     printf("----\n");
+    //     // Control motor based on obstacle detection
+    //     if (obstacle_detected)
+    //     {
+    //         printf("Obstacle detected\n");
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         update_motor_speed();   // Adjust motor speed based on encoder feedback
 
-            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-        }
+    //         // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
+    //         //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
+    //     }
 
-        if (cm != prev_cm)
-        {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
-            prev_cm = cm;
-        }
-    }
+    //     if (cm != prev_cm)
+    //     {
+    //         printf("Obstacle distance: %.2lf cm\n", cm);
+    //         printf("----\n");
+    //         prev_cm = cm;
+    //     }
+    // }
 
-    // TURN RIGHT
-    turn_motor(RIGHT_WHEEL);
-    total_average_distance = 0;
+    // // TURN RIGHT
+    // turn_motor(RIGHT_WHEEL);
+    // total_average_distance = 0;
 
     // STOP AFTER 90CM
     while (1)
