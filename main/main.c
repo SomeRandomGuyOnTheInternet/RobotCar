@@ -88,8 +88,6 @@ void station_1_test()
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
-        sleep_ms(100); // Reduced sleep for more responsive readings
-
         // Read ultrasonic sensor
         for (int i = 0; i < 20; i++)
         {
@@ -106,7 +104,6 @@ void station_1_test()
         }
         else
         {
-            move_motor(pwmL, pwmR); // Apply adjusted PWM values
             update_motor_speed();   // Adjust motor speed based on encoder feedback
 
             // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
@@ -138,12 +135,7 @@ void station_1_test()
         }
         else
         {
-            move_motor(pwmL, pwmR); // Apply adjusted PWM values
             update_motor_speed();   // Adjust motor speed based on encoder feedback
-
-            // printf("Target Speed: %.2f | Left Speed: %.2f, Right Speed: %.2f | PWM Left: %.2f, PWM Right: %.2f\n",
-            //        setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-            // printf("Moved distance: %.2f\n", moved_distance);
         }
     }
 }

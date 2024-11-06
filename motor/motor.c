@@ -170,7 +170,7 @@ void turn_motor(int direction)
     oscillation = 0;
 
     int targetNotchCount = ENCODER_NOTCH;
-    move_motor(3125, 3125);
+    move_motor(2500, 2500);
 
     // Motor to turn left
     if (direction == 0)
@@ -276,6 +276,8 @@ void update_motor_speed()
     // Compute the control signals
     pwmL = compute_pid(setpoint_speed, actual_speed_left, pwmL, &integral_L, &prev_error_L);
     pwmR = compute_pid(setpoint_speed, actual_speed_right, pwmR, &integral_R, &prev_error_R);
+
+    move_motor(pwmL, pwmR);
 }
 
 /*
