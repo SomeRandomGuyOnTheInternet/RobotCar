@@ -80,7 +80,7 @@ void set_distance_speed(int encoder, int interval_ms)
     {
         if (pulse_count_left > 0)
         {
-            double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count_left);
+            double distance = (DISTANCE_PER_HOLE * pulse_count_left);
             actual_distance_left += distance;
             actual_speed_left = distance / (interval_ms / 1000.0);
             printf("=====\n");
@@ -92,7 +92,7 @@ void set_distance_speed(int encoder, int interval_ms)
     {
         if (pulse_count_right > 0)
         {
-            double distance = 2.54 * (DISTANCE_PER_HOLE * pulse_count_right);
+            double distance = (DISTANCE_PER_HOLE * pulse_count_right);
             actual_distance_right += distance;
             actual_speed_right = distance / (interval_ms / 1000.0);
             printf("=====\n");

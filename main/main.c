@@ -72,65 +72,6 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
-// Function to gradually start the motors
-void gradual_start(float target_pwmL, float target_pwmR, float increment) {
-    float start_pwmL = PWM_MIN;
-    float start_pwmR = PWM_MIN;
-
-    while (start_pwmL < target_pwmL || start_pwmR < target_pwmR) {
-        if (start_pwmL < target_pwmL) {
-            start_pwmL += increment;
-        }
-        if (start_pwmR < target_pwmR) {
-            start_pwmR += increment;
-        }
-
-        move_motor(start_pwmL, start_pwmR);
-        sleep_ms(50);
-    }
-}
-
-
-
-// Function to run a straight movement test with gradual start and balancing
-void run_straight_test() {
-    init_all();
-    setpoint_speed = 15.0;
-
-    struct repeating_timer timer;
-    int interval = 100;
-    add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
-
-    printf("Starting gradual ramp-up...\n");
-    gradual_start(pwmL, pwmR, 10.0);
-
-    printf("Starting straight movement test...\n");
-    while (1) {
-        
-        update_motor_speed();
-        
-        move_motor(pwmL, pwmR);
-
-        if (total_average_distance >= 90)
-        {
-            stop_motor();
-            printf("Station 1 complete!\n");
-            break;
-        }
-
-        printf("Target Speed: %.2f | Left Speed: %.2f | Right Speed: %.2f | PWM Left: %.2f | PWM Right: %.2f\n",
-               setpoint_speed, actual_speed_left, actual_speed_right, pwmL, pwmR);
-
-        sleep_ms(100);
-    }
-
-    while (1) {
-        turn_motor(RIGHT_WHEEL);
-        sleep_ms(1000);
-    }
-}
-
-
 void station_1_run()
 {
     printf("Starting test\n");
@@ -165,7 +106,9 @@ void station_1_run()
         }
         else
         {
-            move_motor(1625, 1600);
+            update_motor_speed();
+            move_motor(pwmL, pwmR);
+            sleep_ms(100);
         }
 
         if (cm != prev_cm)
@@ -179,12 +122,12 @@ void station_1_run()
     // TURN RIGHT
     turn_motor(RIGHT_WHEEL);
     sleep_ms(1000);
-    total_average_distance = 0;
+    double previous_distance = total_average_distance;
 
     // STOP AFTER 90CM
     while (1)
     {
-        if (total_average_distance >= 90)
+        if ((total_average_distance - previous_distance) >= 90)
         {
             stop_motor();
             printf("Station 1 complete!\n");
@@ -192,7 +135,11 @@ void station_1_run()
         }
         else
         {
-            move_motor(1625, 1600);
+            update_motor_speed();
+            move_motor(pwmL, pwmR);
+            printf("Distance covered: %.2lf cm\n", total_average_distance - previous_distance);
+            printf("----\n");
+            sleep_ms(100);
         }
     }
 }
@@ -200,6 +147,8 @@ void station_1_run()
 int main()
 {
     // Init all required
+    init_all();
+    init_interrupts();
 
     station_1_run();
 
