@@ -16,8 +16,8 @@ extern volatile float actual_speed_right;
 
 // PID parameters
 float Kp = 2;
-float Ki = 0.1;
-float Kd = 0.4;
+float Ki = 0.12;
+float Kd = 0.3;
 
 // PID control variables
 float integral_L = 0.0;

@@ -85,6 +85,12 @@ void station_1_run()
     bool obstacle_detected = false;
     double cm, prev_cm;
 
+   /* for (int i = 0; i < 20; i++)
+    {
+        cm = get_cm(state);
+    }
+    sleep_ms(1000);&*/
+
     // GO STRAIGHT UNTIL OBSTACLE
     while (1)
     {
@@ -95,11 +101,11 @@ void station_1_run()
         }
         obstacle_detected = cm < MIN_CM;
 
-        printf("----\n");
+        //printf("----\n");
         // Control motor based on obstacle detection
         if (obstacle_detected)
         {
-            printf("Obstacle detected\n");
+            //printf("Obstacle detected\n");
             stop_motor();
             sleep_ms(1000);
             break;
@@ -113,8 +119,8 @@ void station_1_run()
 
         if (cm != prev_cm)
         {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
+            //printf("Obstacle distance: %.2lf cm\n", cm);
+            //printf("----\n");
             prev_cm = cm;
         }
     }
@@ -130,15 +136,15 @@ void station_1_run()
         if ((total_average_distance - previous_distance) >= 90)
         {
             stop_motor();
-            printf("Station 1 complete!\n");
+            //printf("Station 1 complete!\n");
             break;
         }
         else
         {
             update_motor_speed();
             move_motor(pwmL, pwmR);
-            printf("Distance covered: %.2lf cm\n", total_average_distance - previous_distance);
-            printf("----\n");
+            //printf("Distance covered: %.2lf cm\n", total_average_distance - previous_distance);
+            //printf("----\n");
             sleep_ms(100);
         }
     }
