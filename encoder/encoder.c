@@ -80,33 +80,33 @@ void set_distance_speed(int encoder, int interval_ms)
     {
         if (pulse_count_left > 0)
         {
-            double distance = 3 * (DISTANCE_PER_HOLE * pulse_count_left);
+            double distance = 3.5 * (DISTANCE_PER_HOLE * pulse_count_left);
             actual_distance_left += distance;
             actual_speed_left = distance / (interval_ms / 1000.0);
-            printf("=====\n");
-            printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
-            printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
+            // printf("=====\n");
+            // printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
+            // printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
         }
     }
     else if (encoder == RIGHT_WHEEL)
     {
         if (pulse_count_right > 0)
         {
-            double distance = 3 * (DISTANCE_PER_HOLE * pulse_count_right);
+            double distance = 3.5 * (DISTANCE_PER_HOLE * pulse_count_right);
             actual_distance_right += distance;
             actual_speed_right = distance / (interval_ms / 1000.0);
-            printf("=====\n");
-            printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
-            printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
+            // printf("=====\n");
+            // printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
+            // printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
         }
     }
 
     total_average_distance = (actual_distance_left + actual_distance_right) / 2;
     total_average_speed = (actual_speed_left + actual_speed_left) / 2;
 
-    printf("=====\n");
-    printf("Total distance (total): %.2lf cm\n", total_average_distance);
-    printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
+    // printf("=====\n");
+    // printf("Total distance (total): %.2lf cm\n", total_average_distance);
+    // printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
 
     return;
 }
