@@ -51,7 +51,7 @@ void ultrasonic_init()
     gpio_set_dir(ECHOPIN, GPIO_IN);
 }
 
-void ultrasonic_interrupt_callback(uint gpio, uint32_t events)
+void read_echo_pulse(uint gpio, uint32_t events)
 {
     if (gpio == ECHOPIN && events & GPIO_IRQ_EDGE_RISE)
     {
@@ -61,6 +61,12 @@ void ultrasonic_interrupt_callback(uint gpio, uint32_t events)
     {
         set_pulse_length(gpio, events);
     }
+
+    // Call the callback function if it is not NULL
+    // if (callback != NULL)
+    // {
+    //     callback(gpio, events);
+    // }
 }
 
 void set_start_time(uint gpio, uint32_t events)
@@ -98,7 +104,8 @@ double get_cm(kalman_state *state)
 {
     send_pulse();
     uint64_t sent_pulse_length = get_pulse_length();
-    double measured = sent_pulse_length / 29.0 / 2.0;
+    // FINE TUNE DISTANCE HERE
+    double measured = (sent_pulse_length / 29.0 / 2.0) - 1;
     kalman_update(state, measured);
 
     if (state->x < 10)
@@ -116,8 +123,8 @@ double get_cm(kalman_state *state)
 //     sleep_ms(1000);
 
 //     // Initialise motor GPIO pins and PWM
-//     init_motor_setup();
-//     init_motor_pwm();
+//     motor_init_setup();
+//     motor_pwm_init();
 
 //     // Initialise ultrasonic sensor
 //     ultrasonic_init();

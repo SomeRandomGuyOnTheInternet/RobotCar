@@ -1,11 +1,16 @@
 #include "encoder.h"
 
+const double DISTANCE_PER_HOLE = ENCODER_CIRCUMFERENCE / ENCODER_NOTCH;
+
 uint32_t pulse_count_left = 0;
 uint32_t pulse_count_right = 0;
 volatile uint32_t oscillation = 0;
-double moved_distance = 0.0;
-volatile float actual_speed_left;
-volatile float actual_speed_right;
+volatile double total_average_distance = 0.0;
+double total_average_speed = 0.0;
+float actual_distance_left = 0.0;
+float actual_distance_right = 0.0;
+volatile float actual_speed_left = 0.0;
+volatile float actual_speed_right = 0.0;
 
 void encoder_init()
 {
@@ -29,26 +34,17 @@ void encoder_init()
     gpio_put(R_ENCODER_POW, 1);
 }
 
-bool encoder_1s_callback()
+bool encoder_set_distance_speed_callback(struct repeating_timer *t)
 {
-    get_speed_and_distance(LEFT_WHEEL, pulse_count_left);
-    get_speed_and_distance(RIGHT_WHEEL, pulse_count_right);
+    int *interval = (int *)t->user_data;
+
+    set_distance_speed(LEFT_WHEEL, pulse_count_left, *interval);
+    set_distance_speed(RIGHT_WHEEL, pulse_count_right, *interval);
 
     pulse_count_left = 0;
     pulse_count_right = 0;
 
     return true;
-}
-
-void encoder_pulse_callback(uint gpio, uint32_t events)
-{
-    gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-    gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, read_encoder_pulse);
-}
-
-void start_tracking()
-{
-    moved_distance = 0;
 }
 
 void read_encoder_pulse(uint gpio, uint32_t events)
@@ -64,41 +60,67 @@ void read_encoder_pulse(uint gpio, uint32_t events)
     }
 
     oscillation++;
+
+    // Call the callback function if it is not NULL
+    // if (callback != NULL)
+    // {
+    //     callback(gpio, events);
+    // }
 }
 
-void get_speed_and_distance(int encoder, uint32_t pulse_count)
+void start_tracking()
 {
-    double distance_per_hole = ENCODER_CIRCUMFERENCE / ENCODER_NOTCH;
-    double distance = distance_per_hole * pulse_count;
-    double speed = distance;
+    total_average_distance = 0;
+    return;
+}
 
-    moved_distance += distance;
+void set_distance_speed(int encoder, uint32_t pulse_count, int interval_ms)
+{
+    double distance = DISTANCE_PER_HOLE * pulse_count;
+    double speed = distance / (interval_ms / 1000.0);
 
-    if (encoder == 0)
+    if (encoder == LEFT_WHEEL)
     {
-        actual_speed_left = speed;
+        if (pulse_count > 0)
+        {
+            actual_distance_left += distance;
+            actual_speed_left = speed;
+            printf("=====\n");
+            printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
+            printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
+
+        }
     }
-    else if (encoder == 1)
+    else if (encoder == RIGHT_WHEEL)
     {
         actual_speed_right = speed;
+        if (pulse_count > 0)
+        {
+            actual_distance_right += distance;
+            actual_speed_right = speed;
+            printf("=====\n");
+            printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
+            printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
+        }
     }
 
-    if (pulse_count > 0) {
-        printf("=====\n");
-        printf("Total distance: %.2lf cm\n", moved_distance);
-        printf("Current speed: %.2lf cm/s\n", speed);
-        printf("=====\n");
-    }
+    total_average_distance = (actual_distance_left + actual_distance_right) / 2;
+    total_average_speed = (actual_distance_left + actual_distance_right) / 2;
+
+    // printf("=====\n");
+    // printf("Total distance (total): %.2lf cm\n", total_average_distance);
+    // printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
 
     return;
 }
+
 
 // int main() {
 //     stdio_init_all();
 
 //     // Initialise motor GPIO pins and PWM
-//     init_motor_setup();
-//     init_motor_pwm();
+//     motor_init_setup();
+//     motor_pwm_init();
 
 //     // Initialise encoder GPIO pins
 //     encoder_init();
@@ -107,7 +129,7 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 
 //     // Set up a timer to generate interrupts every second
 //     struct repeating_timer timer;
-//     add_repeating_timer_ms(1000, encoder_1s_callback, NULL, &timer);
+//     add_repeating_timer_ms(1000, encoder_set_distance_speed_callback, NULL, &timer);
 
 //     while (1) {
 //         // Run at half duty cycle
@@ -125,7 +147,7 @@ void get_speed_and_distance(int encoder, uint32_t pulse_count)
 //         sleep_ms(250);
 
 //         // Run at 32% duty cycle
-//         // moveMotor(1000);
+//         // move_motor(1000);
 //         move_motor(1000, 1000);
 //         sleep_ms(5000);
 //     }
