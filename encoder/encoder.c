@@ -1,16 +1,18 @@
 #include "encoder.h"
 
-const double DISTANCE_PER_HOLE = (2 * PI * ENCODER_RADIUS) / ENCODER_NOTCH;
+// Global variables protected by mutex
+volatile EncoderData left_data = {0, 0};
+volatile EncoderData right_data = {0, 0};
+static EncoderData left_last_data = {0, 0};
+static EncoderData right_last_data = {0, 0};
 
-uint32_t pulse_count_left = 0;
-uint32_t pulse_count_right = 0;
-volatile uint32_t oscillation = 0;
-volatile double total_average_distance = 0.0;
-double total_average_speed = 0.0;
-volatile float actual_distance_left = 0.0;
-volatile float actual_distance_right = 0.0;
-volatile float actual_speed_left = 0.0;
-volatile float actual_speed_right = 0.0;
+// Mutexes for each encoder
+SemaphoreHandle_t left_data_mutex;
+SemaphoreHandle_t right_data_mutex;
+
+// Separate queues for each encoder
+static QueueHandle_t left_encoder_queue;
+static QueueHandle_t right_encoder_queue;
 
 void encoder_init()
 {
@@ -22,6 +24,9 @@ void encoder_init()
 
     gpio_pull_up(L_ENCODER_OUT);
 
+    left_data.pulse_count = 0;
+    left_data.timestamp = 0;
+
     gpio_init(R_ENCODER_POW);
     gpio_init(R_ENCODER_OUT);
 
@@ -30,85 +35,221 @@ void encoder_init()
 
     gpio_pull_up(R_ENCODER_OUT);
 
+    right_data.pulse_count = 0;
+    right_data.timestamp = 0;
+
     gpio_put(L_ENCODER_POW, 1);
     gpio_put(R_ENCODER_POW, 1);
-}
 
-bool encoder_set_distance_speed_callback(struct repeating_timer *t)
-{
-    int *interval = (int *)t->user_data;
+    left_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
+    right_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
 
-    set_distance_speed(LEFT_WHEEL, *interval);
-    set_distance_speed(RIGHT_WHEEL, *interval);
+    left_data_mutex = xSemaphoreCreateMutex();
+    right_data_mutex = xSemaphoreCreateMutex();
 
-    pulse_count_left = 0;
-    pulse_count_right = 0;
-
-    return true;
+    // Create separate tasks for each encoder
+    xTaskCreate(left_encoder_task, "Left Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(right_encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
 void read_encoder_pulse(uint gpio, uint32_t events)
 {
     if (gpio == L_ENCODER_OUT)
     {
-        pulse_count_left++;
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+        if (xSemaphoreTakeFromISR(left_data_mutex, &xHigherPriorityTaskWoken) == pdTRUE)
+        {
+            left_data.pulse_count++;
+            left_data.timestamp = time_us_64();
+            xSemaphoreGiveFromISR(left_data_mutex, &xHigherPriorityTaskWoken);
+        }
+
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 
     else if (gpio == R_ENCODER_OUT)
     {
-        pulse_count_right++;
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+        if (xSemaphoreTakeFromISR(right_data_mutex, &xHigherPriorityTaskWoken) == pdTRUE)
+        {
+            right_data.pulse_count++;
+            right_data.timestamp = time_us_64();
+            xSemaphoreGiveFromISR(right_data_mutex, &xHigherPriorityTaskWoken);
+        }
+
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
-
-    oscillation++;
-
-    // Call the callback function if it is not NULL
-    // if (callback != NULL)
-    // {
-    //     callback(gpio, events);
-    // }
 }
 
-void start_tracking()
+// Task to handle the left encoder
+void left_encoder_task(void *params)
 {
-    total_average_distance = 0;
-    return;
+    EncoderData data, last_sent = {0, 0};
+    TickType_t last_wake_time = xTaskGetTickCount();
+
+    while (1)
+    {
+        if (xSemaphoreTake(left_data_mutex, portMAX_DELAY) == pdTRUE)
+        {
+            data = left_data;
+            xSemaphoreGive(left_data_mutex);
+
+            // Only send if data has changed
+            if (data.pulse_count != last_sent.pulse_count)
+            {
+                xQueueReset(left_encoder_queue);
+                if (xQueueSendToBack(left_encoder_queue, &data, 0) == pdTRUE)
+                {
+                    // printf("Left encoder - Count: %lu, Timestamp: %llu\n", data.pulse_count, data.timestamp);
+                    last_sent = data;
+                }
+                else
+                {
+                    printf("Left encoder queue send failed\n");
+                }
+            }
+        }
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(10)); // Adjust frequency as needed
+    }
 }
 
-void set_distance_speed(int encoder, int interval_ms)
+// Task to handle the right encoder
+void right_encoder_task(void *params)
 {
-    if (encoder == LEFT_WHEEL)
+    EncoderData data, last_sent = {0, 0};
+    TickType_t last_wake_time = xTaskGetTickCount();
+
+    while (1)
     {
-        if (pulse_count_left > 0)
+        if (xSemaphoreTake(right_data_mutex, portMAX_DELAY) == pdTRUE)
         {
-            double distance = 3.5 * (DISTANCE_PER_HOLE * pulse_count_left);
-            actual_distance_left += distance;
-            actual_speed_left = distance / (interval_ms / 1000.0);
-            // printf("=====\n");
-            // printf("Total distance (Left): %.2lf cm\n", actual_distance_left);
-            // printf("Current speed (Left): %.2lf cm/s\n", actual_speed_left);
+            data = right_data;
+            xSemaphoreGive(right_data_mutex);
+
+            // Only send if data has changed
+            if (data.pulse_count != last_sent.pulse_count)
+            {
+                xQueueReset(right_encoder_queue);
+                if (xQueueSendToBack(right_encoder_queue, &data, 0) == pdTRUE)
+                {
+                    // printf("Right encoder - Count: %lu, Timestamp: %llu\n", data.pulse_count, data.timestamp);
+                    last_sent = data;
+                }
+                else
+                {
+                    printf("Right encoder queue send failed\n");
+                }
+            }
+        }
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(10)); // Adjust frequency as needed
+    }
+}
+
+// Function to get distance for left encoder
+float get_left_distance()
+{
+    EncoderData data;
+    float distance = 0.0f;
+
+    if (xQueuePeek(left_encoder_queue, &data, 0) == pdTRUE)
+    {
+        float distance_per_pulse = WHEEL_CIRCUMFERENCE / PULSES_PER_REVOLUTION;
+        distance = distance_per_pulse * (float)data.pulse_count;
+        printf("Left Distance - Pulses: %lu, Distance Per Hole: %.2f, Distance: %.2f cm\n",
+               data.pulse_count, distance_per_pulse, distance);
+    }
+
+    return distance;
+}
+
+// Function to get distance for right encoder
+float get_right_distance()
+{
+    EncoderData data;
+    float distance = 0.0f;
+
+    if (xQueuePeek(right_encoder_queue, &data, 0) == pdTRUE)
+    {
+        float distance_per_pulse = WHEEL_CIRCUMFERENCE / PULSES_PER_REVOLUTION;
+        distance = distance_per_pulse * (float)data.pulse_count;
+        printf("Right Distance - Pulses: %lu, Distance Per Hole: %.2f, Distance: %.2f cm\n",
+               data.pulse_count, distance_per_pulse, distance);
+    }
+    return distance;
+}
+
+// Function to get speed for a left encoder
+float get_left_speed()
+{
+    EncoderData current;
+    float speed = 0.0f;
+
+    if (xQueuePeek(left_encoder_queue, &current, 0) == pdTRUE)
+    {
+        if (current.pulse_count != left_last_data.pulse_count)
+        {                                                                                  // Only calculate if count changed
+            float time_diff = (current.timestamp - left_last_data.timestamp) / 1000000.0f; // Convert to seconds
+            float count_diff = current.pulse_count - left_last_data.pulse_count;
+
+            if (time_diff > 0)
+            {
+                float distance_per_pulse = WHEEL_CIRCUMFERENCE / PULSES_PER_REVOLUTION;
+                speed = (distance_per_pulse * count_diff) / time_diff; // Speed in cm/s
+                printf("Left Speed: %.2f cm/s (count diff: %.1f, time diff: %.6f s)\n",
+                       speed, count_diff, time_diff);
+            }
+
+            left_last_data = current;
+        }
+        else
+        {
+            printf("No pulse count change detected for left encoder\n");
         }
     }
-    else if (encoder == RIGHT_WHEEL)
+    else
     {
-        if (pulse_count_right > 0)
-        {
-            double distance = 3.5 * (DISTANCE_PER_HOLE * pulse_count_right);
-            actual_distance_right += distance;
-            actual_speed_right = distance / (interval_ms / 1000.0);
-            // printf("=====\n");
-            // printf("Total distance (Right): %.2lf cm\n", actual_distance_right);
-            // printf("Current speed (Right): %.2lf cm/s\n", actual_speed_right);
-        }
+        printf("No data available in left encoder queue\n");
     }
 
-    total_average_distance = (actual_distance_left + actual_distance_right) / 2;
-    total_average_speed = (actual_speed_left + actual_speed_left) / 2;
+    return speed;
+}
 
-    // printf("=====\n");
-    // printf("Total distance (total): %.2lf cm\n", total_average_distance);
-    // printf("Current speed (total): %.2lf cm/s\n", total_average_speed);
+// Function to get speed for right encoder
+float get_right_speed()
+{
+    EncoderData current;
+    float speed = 0.0f;
 
-    return;
+    if (xQueuePeek(right_encoder_queue, &current, 0) == pdTRUE)
+    {
+        if (current.pulse_count != right_last_data.pulse_count)
+        {                                                                                   // Only calculate if count changed
+            float time_diff = (current.timestamp - right_last_data.timestamp) / 1000000.0f; // Convert to seconds
+            float count_diff = current.pulse_count - right_last_data.pulse_count;
+
+            if (time_diff > 0)
+            {
+                float distance_per_pulse = WHEEL_CIRCUMFERENCE / PULSES_PER_REVOLUTION;
+                speed = (distance_per_pulse * count_diff) / time_diff; // Speed in cm/s
+                printf("Right Speed: %.2f cm/s (count diff: %.1f, time diff: %.6f s)\n",
+                       speed, count_diff, time_diff);
+            }
+
+            right_last_data = current;
+        }
+        else
+        {
+            printf("No pulse count change detected for right encoder\n");
+        }
+    }
+    else
+    {
+        printf("No data available in right encoder queue\n");
+    }
+
+    return speed;
 }
 
 // int main() {

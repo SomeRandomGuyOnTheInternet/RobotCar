@@ -8,6 +8,10 @@ target_include_directories(encoder PRIVATE
 target_link_libraries(encoder
     pico_stdlib
     hardware_pwm
+    hardware_gpio
+    hardware_timer
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
     motor_lib
 )
 
@@ -23,6 +27,10 @@ add_library(encoder_lib
 target_link_libraries(encoder_lib
     pico_stdlib
     hardware_pwm
+    hardware_gpio
+    hardware_timer
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
     motor_lib
 )
 

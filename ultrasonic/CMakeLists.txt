@@ -13,6 +13,8 @@ target_link_libraries(ultrasonic
     pico_stdlib
     hardware_gpio
     hardware_timer
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
     motor_lib
 )
 
@@ -31,6 +33,8 @@ add_library(ultrasonic_lib
 target_link_libraries(ultrasonic_lib
     pico_stdlib
     hardware_gpio
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
     hardware_timer)
 
 # create map/bin/hex file etc.

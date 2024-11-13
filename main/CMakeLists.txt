@@ -20,6 +20,11 @@ target_link_libraries(main
         pico_stdlib
         pico_cyw43_arch_none
         hardware_adc
+        hardware_pwm
+        hardware_gpio
+        hardware_timer
+        FreeRTOS-Kernel
+        FreeRTOS-Kernel-Heap4
         ultrasonic_lib
         motor_lib
         encoder_lib
