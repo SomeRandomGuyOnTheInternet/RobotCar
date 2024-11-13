@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <time.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "hardware/adc.h"
@@ -10,7 +12,9 @@
 #include "encoder.h"
 #include "motor.h"
 #include "gy511.h"
-
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
 void callbacks(uint gpio, uint32_t events)
 {
@@ -76,78 +80,69 @@ void station_1_run()
 {
     printf("Starting test\n");
 
-    struct repeating_timer timer;
-    int interval = 1000;
-    add_repeating_timer_ms(interval, encoder_set_distance_speed_callback, &interval, &timer);
+    float target_speed = 32.5f;
 
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
-
     bool obstacle_detected = false;
     double cm, prev_cm;
 
-   /* for (int i = 0; i < 20; i++)
-    {
-        cm = get_cm(state);
-    }
-    sleep_ms(1000);&*/
+    // // GO STRAIGHT UNTIL OBSTACLE
+    // while (1)
+    // {
+    //     reset_left_encoder();
+    //     reset_right_encoder();
 
-    // GO STRAIGHT UNTIL OBSTACLE
-    while (1)
-    {
-        // Read ultrasonic sensor
-        for (int i = 0; i < 20; i++)
-        {
-            cm = get_cm(state);
-        }
-        obstacle_detected = cm < MIN_CM;
+    //     // Read ultrasonic sensor
+    //     for (int i = 0; i < 20; i++)
+    //     {
+    //         cm = get_cm(state);
+    //     }
+    //     obstacle_detected = cm < MIN_CM;
 
-        //printf("----\n");
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            //printf("Obstacle detected\n");
-            stop_motor();
-            sleep_ms(1000);
-            break;
-        }
-        else
-        {
-            update_motor_speed();
-            move_motor(pwmL, pwmR);
-            sleep_ms(100);
-        }
+    //     printf("----\n");
+    //     // Control motor based on obstacle detection
+    //     if (obstacle_detected)
+    //     {
+    //         printf("Obstacle detected\n");
+    //         stop_motor();
+    //         sleep_ms(1000);
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         move_car(FORWARD, target_speed, 0.0f);
+    //     }
 
-        if (cm != prev_cm)
-        {
-            //printf("Obstacle distance: %.2lf cm\n", cm);
-            //printf("----\n");
-            prev_cm = cm;
-        }
-    }
+    //     if (cm != prev_cm)
+    //     {
+    //         printf("Obstacle distance: %.2lf cm\n", cm);
+    //         printf("----\n");
+    //         prev_cm = cm;
+    //     }
+    // }
 
-    // TURN RIGHT
-    turn_motor(RIGHT_WHEEL);
-    sleep_ms(1000);
-    double previous_distance = total_average_distance;
+    // // TURN RIGHT
+    // turn_motor(RIGHT_WHEEL);
+    // sleep_ms(1000);
+    // double previous_distance = total_average_distance;
 
     // STOP AFTER 90CM
-    while (1)
-    {
-        if ((total_average_distance - previous_distance) >= 90)
-        {
-            stop_motor();
-            //printf("Station 1 complete!\n");
-            break;
-        }
-        else
-        {
-            update_motor_speed();
-            move_motor(pwmL, pwmR);
-            //printf("Distance covered: %.2lf cm\n", total_average_distance - previous_distance);
-            //printf("----\n");
-            sleep_ms(100);
-        }
+    reset_left_encoder();
+    reset_right_encoder();
+    double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
+    move_car(FORWARD, target_speed, 0.0f);  // Set speed (e.g., 20 cm/s)
+    while (get_average_distance() < 90.0f) { 
+        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
+    double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
+    double time_diff = end_timestamp - start_timestamp;
+    float average_speed = 90 / time_diff;
+    printf("Average speed: %f \n", average_speed);
+    
+    // Stop the car
+    move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
+    printf("Reached 90 cm. Stopping.\n");
+    vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
 }
 
 int main()
@@ -156,13 +151,16 @@ int main()
     init_all();
     init_interrupts();
 
-    station_1_run();
+    // Create car movement task
+    xTaskCreate(station_1_run, "Robot Movement", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 
-    while (1)
-    {
+    // Start FreeRTOS scheduler
+    vTaskStartScheduler();
+
+    // This point will not be reached because the scheduler is running
+    while (1) {
         tight_loop_contents();
     }
-    
 
     return 0;
 }

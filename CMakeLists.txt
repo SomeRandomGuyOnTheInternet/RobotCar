@@ -21,7 +21,7 @@ set(PICO_BOARD pico_w)
 
 include(pico_sdk_import.cmake)
 include(pico_extras_import_optional.cmake)
-# include(FreeRTOS_Kernel_import.cmake)
+include(FreeRTOS_Kernel_import.cmake)
 
 # NEED REPLACE
 project(robotcar C CXX ASM)
