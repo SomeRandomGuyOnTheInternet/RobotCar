@@ -8,10 +8,10 @@
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "hardware/adc.h"
-#include "ultrasonic.h"
+// #include "ultrasonic.h"
 #include "encoder.h"
 #include "motor.h"
-#include "gy511.h"
+// #include "gy511.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -28,10 +28,10 @@ void callbacks(uint gpio, uint32_t events)
     case R_ENCODER_OUT:
         read_encoder_pulse(R_ENCODER_OUT, events);
         break;
-    // Ultrasonic callback
-    case ECHOPIN:
-        read_echo_pulse(ECHOPIN, events);
-        break;
+    // // Ultrasonic callback
+    // case ECHOPIN:
+    //     read_echo_pulse(ECHOPIN, events);
+    //     break;
     default:
         break;
     }
@@ -50,15 +50,15 @@ void init_all()
     printf("Motor pins and PWM initialised\n");
     sleep_ms(500);
 
-    // Initialise ultrasonic sensor
-    ultrasonic_init();
-    printf("Ultrasonic pins initialised\n");
-    sleep_ms(500);
+    // // Initialise ultrasonic sensor
+    // ultrasonic_init();
+    // printf("Ultrasonic pins initialised\n");
+    // sleep_ms(500);
 
-    // Initialise ultrasonic sensor
-    gy511_init();
-    printf("Magnetometer pins initialised\n");
-    sleep_ms(500);
+    // // Initialise ultrasonic sensor
+    // gy511_init();
+    // printf("Magnetometer pins initialised\n");
+    // sleep_ms(500);
 
     // Initialise encoder sensor
     encoder_init();
@@ -71,7 +71,7 @@ void init_interrupts()
 {
     printf("Interrupts initialised\n");
     // Initialise interrupts for needed sensors
-    gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
+    // gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
@@ -82,9 +82,9 @@ void station_1_run()
 
     float target_speed = 32.5f;
 
-    kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
-    bool obstacle_detected = false;
-    double cm, prev_cm;
+    // kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
+    // bool obstacle_detected = false;
+    // double cm, prev_cm;
 
     // // GO STRAIGHT UNTIL OBSTACLE
     // while (1)

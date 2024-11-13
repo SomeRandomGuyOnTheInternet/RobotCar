@@ -2,7 +2,9 @@ add_executable(encoder encoder.c)
 
 target_include_directories(encoder PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/../motor
+    # ${FREERTOS_SOURCE_DIR}/include
+    # ${FREERTOS_SOURCE_DIR}/portable/ThirdParty/GCC/RP2040/include
+    # ${CMAKE_CURRENT_LIST_DIR}/../motor
 )
 
 target_link_libraries(encoder
@@ -12,7 +14,7 @@ target_link_libraries(encoder
     hardware_timer
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    motor_lib
+    # motor_lib
 )
 
 pico_enable_stdio_usb(encoder 1)
@@ -31,7 +33,7 @@ target_link_libraries(encoder_lib
     hardware_timer
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    motor_lib
+    # motor_lib
 )
 
 pico_enable_stdio_usb(encoder_lib 1)

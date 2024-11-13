@@ -252,42 +252,43 @@ void encoder_init()
     xTaskCreate(right_encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
-// int main() {
-//     stdio_init_all();
+int main()
+{
+    // stdio_init_all();
 
-//     // Initialise motor GPIO pins and PWM
-//     motor_init_setup();
-//     motor_pwm_init();
+    // // Initialise motor GPIO pins and PWM
+    // motor_init_setup();
+    // motor_pwm_init();
 
-//     // Initialise encoder GPIO pins
-//     encoder_init();
-//     printf("Encoder pins initialised\n");
-//     sleep_ms(500);
+    // // Initialise encoder GPIO pins
+    // encoder_init();
+    // printf("Encoder pins initialised\n");
+    // sleep_ms(500);
 
-//     // Set up a timer to generate interrupts every second
-//     struct repeating_timer timer;
-//     add_repeating_timer_ms(1000, encoder_set_distance_speed_callback, NULL, &timer);
+    // // Set up a timer to generate interrupts every second
+    // struct repeating_timer timer;
+    // add_repeating_timer_ms(1000, encoder_set_distance_speed_callback, NULL, &timer);
 
-//     while (1) {
-//         // Run at half duty cycle
-//         move_motor(1563, 1563);
-//         sleep_ms(5000);
+    // while (1) {
+    //     // Run at half duty cycle
+    //     move_motor(1563, 1563);
+    //     sleep_ms(5000);
 
-//         // Turn left at full duty cycle
-//         move_motor(3165, 3165);
-//         turn_motor(1);
-//         sleep_ms(250);
+    //     // Turn left at full duty cycle
+    //     move_motor(3165, 3165);
+    //     turn_motor(1);
+    //     sleep_ms(250);
 
-//         // Turn right at full duty cycle
-//         move_motor(3165, 3165);
-//         turn_motor(0);
-//         sleep_ms(250);
+    //     // Turn right at full duty cycle
+    //     move_motor(3165, 3165);
+    //     turn_motor(0);
+    //     sleep_ms(250);
 
-//         // Run at 32% duty cycle
-//         // move_motor(1000);
-//         move_motor(1000, 1000);
-//         sleep_ms(5000);
-//     }
+    //     // Run at 32% duty cycle
+    //     // move_motor(1000);
+    //     move_motor(1000, 1000);
+    //     sleep_ms(5000);
+    // }
 
-//     return 0;
-// }
+    // return 0;
+}

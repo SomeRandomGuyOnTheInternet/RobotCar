@@ -5,10 +5,10 @@ add_executable(main
 target_include_directories(main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/..
-        ${CMAKE_CURRENT_LIST_DIR}/../ultrasonic
+        # ${CMAKE_CURRENT_LIST_DIR}/../ultrasonic
         ${CMAKE_CURRENT_LIST_DIR}/../motor
         ${CMAKE_CURRENT_LIST_DIR}/../encoder
-        ${CMAKE_CURRENT_LIST_DIR}/../magneto
+        # ${CMAKE_CURRENT_LIST_DIR}/../magneto
         )
 
 target_compile_definitions(main PRIVATE
@@ -25,10 +25,10 @@ target_link_libraries(main
         hardware_timer
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
-        ultrasonic_lib
+        # ultrasonic_lib
         motor_lib
         encoder_lib
-        gy511_lib
+        # gy511_lib
         )
 
 # create map/bin/hex file etc.
