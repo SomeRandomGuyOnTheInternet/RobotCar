@@ -252,8 +252,8 @@ void encoder_init()
     xTaskCreate(right_encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
-int main()
-{
+// int main()
+// {
     // stdio_init_all();
 
     // // Initialise motor GPIO pins and PWM
@@ -291,4 +291,4 @@ int main()
     // }
 
     // return 0;
-}
+//}
