@@ -6,8 +6,10 @@
 #include "motor.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
+#include "../encoder/encoder.h" 
 
-// Remove these after Vignesh ENCODER DONE
+/* Remove these after Vignesh ENCODER DONE
 float get_left_speed() {
     // Temporary stub, replace with actual implementation later
     return 0.0f;
@@ -25,7 +27,7 @@ float get_right_distance() {
     return 0.0f;
 }
 bool black_line_detected = false; 
-float get_simulated_speed(float target_speed);
+float get_simulated_speed(float target_speed);*/
 
 
 // Global motor configurations
@@ -61,15 +63,11 @@ void set_motor_pwm(uint gpio, float duty_cycle, float freq) {
     pwm_set_clkdiv(slice_num, divider);
     pwm_set_wrap(slice_num, 65535);
     
-    printf("Setting PWM with slice_num: %d, channel: %d, duty: %.2f\n",
-            pwm_gpio_to_slice_num(gpio), pwm_gpio_to_channel(gpio), duty_cycle);
-
     printf("Setting PWM on GPIO %d with duty cycle %.2f\n", gpio, duty_cycle);
 
     pwm_set_chan_level(slice_num, pwm_gpio_to_channel(gpio), duty_cycle * 65535);
 
     pwm_set_enabled(slice_num, true);
-    
 }
 
 // PID calculation function
@@ -113,7 +111,9 @@ void control_motor_forward_backward(MotorConfig* motor, bool forward, float targ
     printf("Controlling motor on PWM pin %d - %s\n", motor->ena_pin, (motor == &left_motor) ? "Left motor" : "Right motor");
 
     gpio_put(motor->in1_pin, !forward);
+    printf("Set GPIO %d to %d\n", motor->in1_pin, !forward);
     gpio_put(motor->in2_pin, forward);
+    printf("Set GPIO %d to %d\n", motor->in2_pin, forward);
 
     motor->target_speed = target_speed;
 
@@ -124,26 +124,9 @@ void control_motor_forward_backward(MotorConfig* motor, bool forward, float targ
     set_motor_pwm(motor->ena_pin, MAX_DUTY_CYCLE, 1000.0f);
 }
 
-/* Control motor forward and backward with scaling for right motor
-void control_motor_forward_backward(MotorConfig* motor, bool forward, float target_speed) {
-    printf("Controlling motor on PWM pin %d - %s\n", motor->ena_pin, (motor == &left_motor) ? "Left motor" : "Right motor");
 
-    gpio_put(motor->in1_pin, !forward);
-    gpio_put(motor->in2_pin, forward);
 
-    printf("Target speed passed: %.2f\n", target_speed);
-    motor->target_speed = target_speed;
-
-    // Adjust the duty cycle specifically for the right motor
-    float duty_cycle = (motor == &right_motor) ? target_speed * 0.9f : target_speed; // Apply a 10% reduction to the right motor
-
-    printf("Applied duty cycle: %.2f for %s motor\n", duty_cycle, (motor == &left_motor) ? "left" : "right");
-
-    // Use the calculated duty cycle based on the adjusted value
-    set_motor_pwm(motor->ena_pin, duty_cycle, 1000.0f);
-}*/
-
-// Task that aligns car based on line detection
+/* Task that aligns car based on line detection
 void control_motor_on_line_task(void *pvParameters) {
     while (1) {
         // Check if line following mode is active
@@ -171,7 +154,7 @@ void control_motor_on_line_task(void *pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(10)); // Short delay for responsive line checking
     }
-}
+}*/
 
 // Helper function to calculate angle when performing pivot turns
 float get_angle_turned_pivot() {
@@ -299,7 +282,7 @@ void move_car(MovementDirection direction, float speed, float angle) {
     }
 }
 
-/* PID control task that stabilse car when moving forward USE THIS WHEN ENCODER DONE VIGNESH
+// PID control task that stabilse car when moving forward USE THIS WHEN ENCODER DONE VIGNESH
 void pid_update_task(void *pvParameters) {
     while (1) {
         if (current_movement == FORWARD) {
@@ -332,84 +315,48 @@ void pid_update_task(void *pvParameters) {
             
         vTaskDelay(pdMS_TO_TICKS(30)); // Adjust delay as needed for responsiveness
     }
-} */
-
-void pid_update_task(void *pvParameters) {
-    while (1) {
-        if (current_movement == FORWARD) {
-            if (left_motor.target_speed > 0 || right_motor.target_speed > 0) {
-                float left_current_speed = get_simulated_speed(left_motor.target_speed);
-                left_motor.current_speed = left_current_speed;
-                if (xSemaphoreTake(pid_mutex, portMAX_DELAY)) {
-                    float left_pwm_output = calculate_pid(left_motor.target_speed, left_current_speed, &left_speed_pid);
-                    set_motor_pwm(left_motor.ena_pin, left_pwm_output, 1000.0f);
-                    xSemaphoreGive(pid_mutex);
-                }
-
-                float right_current_speed = get_simulated_speed(right_motor.target_speed);
-                right_motor.current_speed = right_current_speed;
-                if (xSemaphoreTake(pid_mutex, portMAX_DELAY)) {
-                    float right_pwm_output = calculate_pid(right_motor.target_speed, right_current_speed, &right_speed_pid);
-                    set_motor_pwm(right_motor.ena_pin, right_pwm_output, 1000.0f);
-                    xSemaphoreGive(pid_mutex);
-                }
-            }
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
-        vTaskDelay(pdMS_TO_TICKS(30));
-    }
-}
+} 
 
 
 // Initialization function
 void init_motor() {
     // Initialize GPIO for motors
     gpio_init(L_MOTOR_IN1);
-    gpio_set_dir(L_MOTOR_IN1, GPIO_OUT);
     gpio_init(L_MOTOR_IN2);
+    gpio_set_dir(L_MOTOR_IN1, GPIO_OUT);
     gpio_set_dir(L_MOTOR_IN2, GPIO_OUT);
-    gpio_init(L_MOTOR_ENA);
-    gpio_set_dir(L_MOTOR_ENA, GPIO_OUT);
 
     gpio_init(R_MOTOR_IN3);
-    gpio_set_dir(R_MOTOR_IN3, GPIO_OUT);
     gpio_init(R_MOTOR_IN4);
+    gpio_set_dir(R_MOTOR_IN3, GPIO_OUT);
     gpio_set_dir(R_MOTOR_IN4, GPIO_OUT);
-    gpio_init(R_MOTOR_ENB);
-    gpio_set_dir(R_MOTOR_ENB, GPIO_OUT);
+    
     
     // Create mutex for PID calculations
     pid_mutex = xSemaphoreCreateMutex();
 
     // Create PID update task for maintaining speed alignment between wheels
     xTaskCreate(pid_update_task, "PID Update", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
-    xTaskCreate(control_motor_on_line_task, "Control Motor on Line", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+    //xTaskCreate(control_motor_on_line_task, "Control Motor on Line", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL); integrate with hakam
 }
 
-// Temporary function to simulate encoder feedback for PID tuning
-float get_simulated_speed(float target_speed) {
-    // Simulate feedback by returning a value close to the target, with some variation
-    // This simulates that the motors do not immediately reach the target speed
-    static float simulated_speed = 0.0f;
-    if (simulated_speed < target_speed) {
-        simulated_speed += 0.1f; // Increment to simulate acceleration
-    } else {
-        simulated_speed -= 0.05f; // Decrement to simulate deceleration
-    }
-    return simulated_speed;
-}
 
-// Task to test motor movement with simulated PID feedback, including individual motor tests
+
 void test_motor_task(void *pvParameters) {
     // Wait for system initialization
     vTaskDelay(pdMS_TO_TICKS(1000));
-    printf("Starting motor tests with simulated PID feedback...\n");
+    printf("Starting motor tests with PID feedback...\n");
 
     // Test moving forward with both motors
     printf("Testing forward movement with both motors...\n");
     move_car(FORWARD, 0.5, 0); // Move forward at 50% speed
     vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
+
+    // Check encoder feedback
+    float left_speed = get_left_speed();
+    float right_speed = get_right_speed();
+    printf("Left Speed after forward test: %.2f cm/s\n", left_speed);
+    printf("Right Speed after forward test: %.2f cm/s\n", right_speed);
 
     // Stop the motor and let it stabilize
     move_car(STOP, 0, 0);
@@ -420,14 +367,24 @@ void test_motor_task(void *pvParameters) {
     move_car(BACKWARD, 0.5, 0); // Move backward at 50% speed
     vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
 
+    // Check encoder feedback
+    left_speed = get_left_speed();
+    right_speed = get_right_speed();
+    printf("Left Speed after backward test: %.2f cm/s\n", left_speed);
+    printf("Right Speed after backward test: %.2f cm/s\n", right_speed);
+
     // Stop the motor
     move_car(STOP, 0, 0);
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait for 1 second
+    vTaskDelay(pdMS_TO_TICKS(2000)); // Wait for 1 second
 
     // Test moving only the left motor forward
     printf("Testing forward movement with only the left motor...\n");
     control_motor_forward_backward(&left_motor, true, 0.5); // Move left motor forward at 50% speed
     vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
+
+    // Check left encoder feedback
+    left_speed = get_left_speed();
+    printf("Left Speed after single motor forward test: %.2f cm/s\n", left_speed);
 
     // Stop the left motor
     stop_motor();
@@ -438,23 +395,9 @@ void test_motor_task(void *pvParameters) {
     control_motor_forward_backward(&right_motor, true, 0.5); // Move right motor forward at 50% speed
     vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
 
-    // Stop the right motor
-    stop_motor();
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait for 1 second
-
-    // Test moving only the left motor backward
-    printf("Testing backward movement with only the left motor...\n");
-    control_motor_forward_backward(&left_motor, false, 0.5); // Move left motor backward at 50% speed
-    vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
-
-    // Stop the left motor
-    stop_motor();
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait for 1 second
-
-    // Test moving only the right motor backward
-    printf("Testing backward movement with only the right motor...\n");
-    control_motor_forward_backward(&right_motor, false, 0.5); // Move right motor backward at 50% speed
-    vTaskDelay(pdMS_TO_TICKS(3000)); // Run for 3 seconds
+    // Check right encoder feedback
+    right_speed = get_right_speed();
+    printf("Right Speed after single motor forward test: %.2f cm/s\n", right_speed);
 
     // Stop the right motor
     stop_motor();
@@ -464,6 +407,7 @@ void test_motor_task(void *pvParameters) {
     printf("Motor tests completed.\n");
     vTaskDelete(NULL);
 }
+
 
 
 // Entry point function for the program

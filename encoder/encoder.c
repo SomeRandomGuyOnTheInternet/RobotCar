@@ -14,44 +14,6 @@ SemaphoreHandle_t right_data_mutex;
 static QueueHandle_t left_encoder_queue;
 static QueueHandle_t right_encoder_queue;
 
-void encoder_init()
-{
-    gpio_init(L_ENCODER_POW);
-    gpio_init(L_ENCODER_OUT);
-
-    gpio_set_dir(L_ENCODER_POW, GPIO_OUT);
-    gpio_set_dir(L_ENCODER_OUT, GPIO_IN);
-
-    gpio_pull_up(L_ENCODER_OUT);
-
-    left_data.pulse_count = 0;
-    left_data.timestamp = 0;
-
-    gpio_init(R_ENCODER_POW);
-    gpio_init(R_ENCODER_OUT);
-
-    gpio_set_dir(R_ENCODER_POW, GPIO_OUT);
-    gpio_set_dir(R_ENCODER_OUT, GPIO_IN);
-
-    gpio_pull_up(R_ENCODER_OUT);
-
-    right_data.pulse_count = 0;
-    right_data.timestamp = 0;
-
-    gpio_put(L_ENCODER_POW, 1);
-    gpio_put(R_ENCODER_POW, 1);
-
-    left_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
-    right_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
-
-    left_data_mutex = xSemaphoreCreateMutex();
-    right_data_mutex = xSemaphoreCreateMutex();
-
-    // Create separate tasks for each encoder
-    xTaskCreate(left_encoder_task, "Left Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
-    xTaskCreate(right_encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
-}
-
 void read_encoder_pulse(uint gpio, uint32_t events)
 {
     if (gpio == L_ENCODER_OUT)
@@ -250,6 +212,44 @@ float get_right_speed()
     }
 
     return speed;
+}
+
+void encoder_init()
+{
+    gpio_init(L_ENCODER_POW);
+    gpio_init(L_ENCODER_OUT);
+
+    gpio_set_dir(L_ENCODER_POW, GPIO_OUT);
+    gpio_set_dir(L_ENCODER_OUT, GPIO_IN);
+
+    gpio_pull_up(L_ENCODER_OUT);
+
+    left_data.pulse_count = 0;
+    left_data.timestamp = 0;
+
+    gpio_init(R_ENCODER_POW);
+    gpio_init(R_ENCODER_OUT);
+
+    gpio_set_dir(R_ENCODER_POW, GPIO_OUT);
+    gpio_set_dir(R_ENCODER_OUT, GPIO_IN);
+
+    gpio_pull_up(R_ENCODER_OUT);
+
+    right_data.pulse_count = 0;
+    right_data.timestamp = 0;
+
+    gpio_put(L_ENCODER_POW, 1);
+    gpio_put(R_ENCODER_POW, 1);
+
+    left_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
+    right_encoder_queue = xQueueCreate(1, sizeof(EncoderData));
+
+    left_data_mutex = xSemaphoreCreateMutex();
+    right_data_mutex = xSemaphoreCreateMutex();
+
+    // Create separate tasks for each encoder
+    xTaskCreate(left_encoder_task, "Left Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(right_encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
 // int main() {
