@@ -125,11 +125,11 @@ void station_1_run()
     // sleep_ms(1000);
     // double previous_distance = total_average_distance;
 
-    // MOVE 90CM
+    // MOVE 21CM
     reset_left_encoder();
     reset_right_encoder();
     double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
-    // move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
+    move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
     while (get_average_distance() < target_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
@@ -140,7 +140,7 @@ void station_1_run()
     printf("Average speed: %f \n", average_speed);
 
     // STOP CAR
-    // move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
+    move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
     vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
 }
