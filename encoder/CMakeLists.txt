@@ -2,9 +2,6 @@ add_executable(encoder encoder.c)
 
 target_include_directories(encoder PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    # ${FREERTOS_SOURCE_DIR}/include
-    # ${FREERTOS_SOURCE_DIR}/portable/ThirdParty/GCC/RP2040/include
-    # ${CMAKE_CURRENT_LIST_DIR}/../motor
 )
 
 target_link_libraries(encoder
@@ -24,6 +21,10 @@ pico_add_extra_outputs(encoder)
 add_library(encoder_lib
     encoder.c
     encoder.h
+)
+
+target_include_directories(encoder_lib PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
 )
 
 target_link_libraries(encoder_lib

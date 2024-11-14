@@ -65,7 +65,7 @@ typedef struct {
 } PIDState;
 
 // Prototype functions
-void init_motor();
+void motor_init();
 void move_car(MovementDirection direction, float speed, float angle);
 
 #endif

@@ -46,7 +46,6 @@ void init_all()
 
     // Initialise motor pins and PWM
     motor_init();
-    motor_pwm_init();
     printf("Motor pins and PWM initialised\n");
     sleep_ms(500);
 
@@ -76,11 +75,18 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
+// Helper function to get average distance traveled by both wheels
+float get_average_distance() {
+    float average_distance = (get_left_distance() + get_right_distance()) / 2.0f;
+    // printf("Average Distance: %f", average_distance);
+    return average_distance;
+}
+
 void station_1_run()
 {
     printf("Starting test\n");
 
-    float target_speed = 32.5f;
+    float target_speed = 10.0f;
 
     // kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
     // bool obstacle_detected = false;
@@ -131,12 +137,12 @@ void station_1_run()
     reset_right_encoder();
     double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
     move_car(FORWARD, target_speed, 0.0f);  // Set speed (e.g., 20 cm/s)
-    while (get_average_distance() < 90.0f) { 
+    while (get_average_distance() < 21.0f) { 
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
     double time_diff = end_timestamp - start_timestamp;
-    float average_speed = 90 / time_diff;
+    float average_speed = 21 / time_diff;
     printf("Average speed: %f \n", average_speed);
     
     // Stop the car
