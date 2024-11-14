@@ -49,6 +49,7 @@ void ultrasonic_init()
     gpio_init(ECHOPIN);
     gpio_set_dir(TRIGPIN, GPIO_OUT);
     gpio_set_dir(ECHOPIN, GPIO_IN);
+    gpio_put(TRIGPIN, 0);
 }
 
 void read_echo_pulse(uint gpio, uint32_t events)
@@ -61,12 +62,6 @@ void read_echo_pulse(uint gpio, uint32_t events)
     {
         set_pulse_length(gpio, events);
     }
-
-    // Call the callback function if it is not NULL
-    // if (callback != NULL)
-    // {
-    //     callback(gpio, events);
-    // }
 }
 
 void set_start_time(uint gpio, uint32_t events)

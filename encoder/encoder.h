@@ -21,7 +21,7 @@
 #define ENCODER_RADIUS 1.25
 #define WHEEL_CIRCUMFERENCE 20.0
 #define WHEEL_TO_WHEEL_DISTANCE 10.0
-#define PULSES_PER_REVOLUTION 40  // Number of pulses per wheel revolution
+#define PULSES_PER_REVOLUTION 20  // Number of pulses per wheel revolution
 #define PI 3.14159265
 
 #define LEFT_WHEEL 0
