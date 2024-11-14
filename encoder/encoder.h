@@ -48,10 +48,12 @@ void read_encoder_pulse(uint gpio, uint32_t events);
 
 float get_left_distance();
 float get_right_distance();
+float get_average_distance();
 
 // Speed measurement functions for each encoder
 float get_left_speed();
 float get_right_speed();
+float get_average_speed();
 
 // Encoder reset functions for each encoder
 void reset_left_encoder();

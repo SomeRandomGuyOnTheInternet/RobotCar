@@ -142,6 +142,13 @@ float get_right_distance()
     return distance;
 }
 
+float get_average_distance()
+{
+    float average_distance = (get_left_distance() + get_right_distance()) / 2.0f;
+    printf("Average Distance: %f\n", average_distance);
+    return average_distance;
+}
+
 // Function to get speed for a left encoder
 float get_left_speed()
 {
@@ -212,6 +219,13 @@ float get_right_speed()
     }
 
     return speed;
+}
+
+float get_average_speed()
+{
+    float average_speed = (get_left_speed() + get_right_speed()) / 2.0f;
+    printf("Average Speed: %f\n", average_speed);
+    return average_speed;
 }
 
 // Reset Left Encoder

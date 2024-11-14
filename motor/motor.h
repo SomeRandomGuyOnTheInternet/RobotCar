@@ -2,12 +2,14 @@
 #define motor_h
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
 // Define motor pins
 #define L_MOTOR_IN1 0 // GPIO pin for L motor input 1

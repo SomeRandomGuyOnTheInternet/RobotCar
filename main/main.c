@@ -75,56 +75,50 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
 }
 
-// Helper function to get average distance traveled by both wheels
-float get_average_distance() {
-    float average_distance = (get_left_distance() + get_right_distance()) / 2.0f;
-    // printf("Average Distance: %f", average_distance);
-    return average_distance;
-}
-
 void station_1_run()
 {
     printf("Starting test\n");
 
     float target_speed = 10.0f;
+    float target_distance = 21.0f;
 
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
     bool obstacle_detected = false;
     double cm, prev_cm;
 
-    // GO STRAIGHT UNTIL OBSTACLE
-    reset_left_encoder();
-    reset_right_encoder();
-    while (1)
-    {
-        // Read ultrasonic sensor
-        for (int i = 0; i < 20; i++)
-        {
-            cm = get_cm(state);
-        }
-        obstacle_detected = cm < MIN_CM;
+    // // GO STRAIGHT UNTIL OBSTACLE
+    // reset_left_encoder();
+    // reset_right_encoder();
+    // while (1)
+    // {
+    //     // Read ultrasonic sensor
+    //     for (int i = 0; i < 20; i++)
+    //     {
+    //         cm = get_cm(state);
+    //     }
+    //     obstacle_detected = cm < MIN_CM;
 
-        if (cm != prev_cm)
-        {
-            printf("Obstacle distance: %.2lf cm\n", cm);
-            printf("----\n");
-            prev_cm = cm;
-        }
+    //     if (cm != prev_cm)
+    //     {
+    //         printf("Obstacle distance: %.2lf cm\n", cm);
+    //         printf("----\n");
+    //         prev_cm = cm;
+    //     }
 
-        printf("----\n");
-        // Control motor based on obstacle detection
-        if (obstacle_detected)
-        {
-            printf("Obstacle detected\n");
-            stop_motor();
-            sleep_ms(1000);
-            break;
-        }
-        else
-        {
-            // move_car(FORWARD, target_speed, 0.0f);
-        }
-    }
+    //     printf("----\n");
+    //     // Control motor based on obstacle detection
+    //     if (obstacle_detected)
+    //     {
+    //         printf("Obstacle detected\n");
+    //         move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
+    //         vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         move_car(FORWARD, target_speed, 0.0f);
+    //     }
+    // }
 
     // // TURN RIGHT
     // turn_motor(RIGHT_WHEEL);
@@ -135,18 +129,19 @@ void station_1_run()
     reset_left_encoder();
     reset_right_encoder();
     double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
-    move_car(FORWARD, target_speed, 0.0f);  // Set speed (e.g., 20 cm/s)
-    while (get_left_distance() < 21.0f || get_right_distance() < 21.0f) { 
+    // move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
+    while (get_average_distance() < target_distance)
+    {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
     double time_diff = end_timestamp - start_timestamp;
-    float average_speed = 21 / time_diff;
+    float average_speed = target_distance / time_diff;
     printf("Average speed: %f \n", average_speed);
-    
+
     // STOP CAR
-    move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
-    printf("Reached 90 cm. Stopping.\n");
+    // move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
+    printf("Reached %f cm. Stopping.\n", target_distance);
     vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
 }
 
@@ -163,7 +158,8 @@ int main()
     vTaskStartScheduler();
 
     // This point will not be reached because the scheduler is running
-    while (1) {
+    while (1)
+    {
         tight_loop_contents();
     }
 

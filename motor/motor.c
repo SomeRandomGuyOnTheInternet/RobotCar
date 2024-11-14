@@ -1,13 +1,4 @@
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
 #include "motor.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
-#include "../encoder/encoder.h"
 
 /* Remove these after Vignesh ENCODER DONE
 float get_left_speed() {

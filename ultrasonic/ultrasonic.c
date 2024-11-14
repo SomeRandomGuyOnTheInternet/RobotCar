@@ -1,12 +1,6 @@
 // Get readings from ultrasonic sensor
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "pico/stdlib.h"
-#include "hardware/gpio.h"
-#include "hardware/timer.h"
 #include "ultrasonic.h"
-// #include "motor.h"
 
 volatile absolute_time_t start_time;
 volatile uint64_t pulse_length = 0;
