@@ -54,7 +54,7 @@ void init_all()
     printf("Ultrasonic pins initialised\n");
     sleep_ms(500);
 
-    // Initialise ultrasonic sensor
+    // Initialise magnetometer
     gy511_init();
     printf("Magnetometer pins initialised\n");
     sleep_ms(500);
@@ -82,9 +82,9 @@ void station_1_run()
     float target_speed = 10.0f;
     float target_distance = 200.0f;
 
-    kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
-    bool obstacle_detected = false;
-    double cm, prev_cm;
+    // kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
+    // bool obstacle_detected = false;
+    // double cm, prev_cm;
 
     // // GO STRAIGHT UNTIL OBSTACLE
     // reset_left_encoder();
