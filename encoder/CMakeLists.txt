@@ -11,7 +11,6 @@ target_link_libraries(encoder
     hardware_timer
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    # motor_lib
 )
 
 pico_enable_stdio_usb(encoder 1)
@@ -34,7 +33,6 @@ target_link_libraries(encoder_lib
     hardware_timer
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    # motor_lib
 )
 
 pico_enable_stdio_usb(encoder_lib 1)

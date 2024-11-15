@@ -80,7 +80,7 @@ void station_1_run()
     printf("Starting test\n");
 
     float target_speed = 10.0f;
-    float target_distance = 21.0f;
+    float target_distance = 200.0f;
 
     kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
     bool obstacle_detected = false;
@@ -125,7 +125,7 @@ void station_1_run()
     // sleep_ms(1000);
     // double previous_distance = total_average_distance;
 
-    // MOVE 21CM
+    // MOVE TARGET DISTANCE
     reset_left_encoder();
     reset_right_encoder();
     double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds

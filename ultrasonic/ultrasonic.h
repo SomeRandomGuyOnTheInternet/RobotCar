@@ -11,12 +11,9 @@
 #define ECHOPIN 6
 
 #define MIN_CM 10
-#define MAX_CM 100
-
-typedef void (*echo_read_callback)(uint gpio, uint32_t events);
+#define MAX_CM 400
 
 typedef struct kalman_state_ kalman_state;
-extern volatile bool obstacle_detected;
 
 kalman_state *kalman_init(double q, double r, double p, double initial_value);
 void kalman_update(kalman_state *state, double measurement);

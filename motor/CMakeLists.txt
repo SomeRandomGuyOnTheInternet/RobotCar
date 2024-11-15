@@ -3,7 +3,10 @@ add_executable(motor
 )
 
 # Include the current directory for FreeRTOSConfig.h
-target_include_directories(motor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(motor PRIVATE 
+        ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/../encoder
+)
 
 # pull in common dependencies and additional pwm hardware support
 target_link_libraries(motor
@@ -28,7 +31,10 @@ add_library(motor_lib
 )
 
 # Include the current directory for FreeRTOSConfig.h
-target_include_directories(motor_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(motor_lib PRIVATE 
+        ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/../encoder
+)
 
 # pull in common dependencies
 target_link_libraries(motor_lib
@@ -37,9 +43,8 @@ target_link_libraries(motor_lib
         hardware_pwm
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
+        encoder_lib
 )
 
 # create map/bin/hex file etc.
 pico_enable_stdio_usb(motor_lib 1)
-
-target_include_directories(motor_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR})

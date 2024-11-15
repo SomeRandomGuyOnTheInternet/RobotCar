@@ -17,11 +17,10 @@
 #define R_ENCODER_OUT 15 // GPIO pin for R encoder output
 
 // Define encoder disk specs
-#define ENCODER_NOTCH 20.0
-#define ENCODER_RADIUS 1.25
+#define ENCODER_NOTCHES 20.0
 #define WHEEL_CIRCUMFERENCE 20.0
 #define WHEEL_TO_WHEEL_DISTANCE 10.0
-#define PULSES_PER_REVOLUTION 20  // Number of pulses per wheel revolution
+#define PULSES_PER_REVOLUTION 20.0  // Number of pulses per wheel revolution
 #define PI 3.14159265
 
 #define LEFT_WHEEL 0
@@ -32,8 +31,6 @@ typedef struct {
     uint64_t timestamp;
 } EncoderData;
 
-typedef void (*encoder_read_callback)(uint gpio, uint32_t events);
-
 extern volatile EncoderData left_data;
 extern volatile EncoderData right_data;
 
@@ -43,7 +40,6 @@ extern SemaphoreHandle_t right_data_mutex;
 
 // Functions for encoders
 void encoder_init();
-bool encoder_set_distance_speed_callback(struct repeating_timer *t);
 void read_encoder_pulse(uint gpio, uint32_t events);
 
 float get_left_distance();

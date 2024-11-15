@@ -4,7 +4,6 @@
 
 volatile absolute_time_t start_time;
 volatile uint64_t pulse_length = 0;
-volatile bool obstacle_detected = false;
 
 typedef struct kalman_state_
 {
@@ -96,11 +95,6 @@ double get_cm(kalman_state *state)
     // FINE TUNE DISTANCE HERE
     double measured = (sent_pulse_length / 29.0 / 2.0) - 1;
     kalman_update(state, measured);
-
-    if (state->x < 10)
-    {
-        obstacle_detected = true;
-    }
 
     return state->x;
 }
