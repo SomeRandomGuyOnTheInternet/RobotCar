@@ -87,8 +87,7 @@ void station_1_run()
     // double cm, prev_cm;
 
     // // GO STRAIGHT UNTIL OBSTACLE
-    // reset_left_encoder();
-    // reset_right_encoder();
+    // reset_encoders();
     // while (1)
     // {
     //     // Read ultrasonic sensor
@@ -126,8 +125,7 @@ void station_1_run()
     // double previous_distance = total_average_distance;
 
     // MOVE TARGET DISTANCE
-    reset_left_encoder();
-    reset_right_encoder();
+    reset_encoders();
     double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
     move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
     while (get_average_distance() < target_distance)
@@ -135,14 +133,12 @@ void station_1_run()
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
-    double time_diff = end_timestamp - start_timestamp;
-    float average_speed = target_distance / time_diff;
+    float average_speed = target_distance / (end_timestamp - start_timestamp);
     printf("Average speed: %f \n", average_speed);
 
     // STOP CAR
     move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
-    vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
 }
 
 int main()

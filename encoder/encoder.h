@@ -54,5 +54,6 @@ float get_average_speed();
 // Encoder reset functions for each encoder
 void reset_left_encoder();
 void reset_right_encoder();
+void reset_encoders();
 
 #endif

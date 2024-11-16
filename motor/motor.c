@@ -1,4 +1,5 @@
 #include "motor.h"
+#include "encoder.h"
 
 /* Remove these after Vignesh ENCODER DONE
 float get_left_speed() {

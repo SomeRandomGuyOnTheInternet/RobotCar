@@ -13,7 +13,6 @@ target_link_libraries(ultrasonic
     hardware_timer
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    motor_lib
 )
 
 # create map/bin/hex file etc.
@@ -37,7 +36,8 @@ target_link_libraries(ultrasonic_lib
     hardware_gpio
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
-    hardware_timer)
+    hardware_timer
+)
 
 # create map/bin/hex file etc.
 pico_enable_stdio_usb(ultrasonic_lib 1)

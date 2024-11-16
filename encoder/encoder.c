@@ -262,6 +262,13 @@ void reset_right_encoder()
     }
 }
 
+// Reset Both Encoders
+void reset_encoders()
+{
+    reset_left_encoder();
+    reset_right_encoder();
+}
+
 void encoder_init()
 {
     gpio_init(L_ENCODER_POW);
