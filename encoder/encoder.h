@@ -22,8 +22,8 @@
 #define WHEEL_TO_WHEEL_DISTANCE 10.0
 #define PULSES_PER_REVOLUTION 20.0  // Number of pulses per wheel revolution
 
-#define LEFT_WHEEL 0
-#define RIGHT_WHEEL 1
+#define LEFT 0
+#define RIGHT 1
 
 typedef struct {
     uint32_t pulse_count;

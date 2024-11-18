@@ -11,8 +11,8 @@ float integral_right = 0.0;
 float prev_error_left = 0.0;
 float prev_error_right = 0.0;
 
-static bool use_pid_control = false;
 static float target_speed = 15.0;
+static bool use_pid_control = false;
 static PIDState pid_state = DISABLED;
 
 // Function to move motors forward
@@ -49,10 +49,10 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
     reset_encoders();
-    move_motor(PWM_MAX, PWM_MAX);
+    move_motor(new_pwm_left, new_pwm_right);
 
     // Motor to turn left
-    if (direction == LEFT_WHEEL)
+    if (direction == LEFT)
     {
         // Reverse left wheel, forward right wheel
         gpio_put(L_MOTOR_IN1, 1);
@@ -78,7 +78,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    if (angle != NO_ANGLE)
+    if (angle != CONTINUOUS)
     {
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
         while (get_average_distance() < target_distance)
@@ -87,7 +87,6 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         }
         stop_motor();
         reset_encoders();
-        sleep_ms(50);
     }
 }
 
@@ -135,8 +134,8 @@ void turn_motor_pid(int direction, float angle, float new_target_speed)
 {
     target_speed = new_target_speed;
     enable_pid_control();
-    pid_state = (direction == LEFT_WHEEL) ? LEFT_TURN : RIGHT_TURN;
-    printf("PID turn.\n");
+    pid_state = (direction == LEFT) ? LEFT_TURN : RIGHT_TURN;
+    printf("PID %s turn.\n", (direction == LEFT) ? "left" : "right");
 }
 
 void stop_motor_pid()
@@ -158,6 +157,16 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 
     // Scale the control signal to the PWM range
     float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
+
+    // // Limit the PWM value to the valid range
+    // if (pwm_value < PWM_MIN)
+    // {
+    //     pwm_value = PWM_MIN;
+    // }
+    // else if (pwm_value > PWM_MAX)
+    // {
+    //     pwm_value = PWM_MAX;
+    // }
 
     return pwm_value;
 }
@@ -184,21 +193,23 @@ void pid_task(void *params)
                 reverse_motor(pwm_left, pwm_right);
                 break;
             case LEFT_TURN:
-                turn_motor(LEFT_WHEEL, NO_ANGLE, PWM_MAX, PWM_MAX);
+                turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
                 break;
             case RIGHT_TURN:
-                turn_motor(RIGHT_WHEEL, NO_ANGLE, PWM_MAX, PWM_MAX);
+                turn_motor(RIGHT, CONTINUOUS, PWM_MAX, PWM_MAX);
                 break;
             case STOP:
                 stop_motor();
                 break;
+            case DISABLED:
             default:
-                use_pid_control = false;
+                disable_pid_control();
+                break;
             }
-        }
 
-        // Wait for the next control period
-        vTaskDelay(pdMS_TO_TICKS(10));
+            // Wait for the next control period
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
     }
 }
 

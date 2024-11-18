@@ -27,7 +27,8 @@
 
 #define PI 3.14159265358979323846
 #define FULL_CIRCLE 360.0f
-#define NO_ANGLE -1.0f
+
+#define CONTINUOUS -1.0f
 
 typedef enum {
     STOP,

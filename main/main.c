@@ -96,10 +96,11 @@ void station_1_run()
 
     // TURN RIGHT 90 DEGREES
     sleep_ms(1000);
-    turn_motor(RIGHT_WHEEL, 90.0f, PWM_MAX, PWM_MAX);
+    turn_motor(RIGHT, 90.0f, PWM_MAX, PWM_MAX);
 
     // GO STRAIGHT UNTIL TARGET DISTANCE
     sleep_ms(1000);
+    reset_encoders();
     enable_pid_control();
     move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
