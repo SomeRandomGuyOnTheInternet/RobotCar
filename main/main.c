@@ -85,7 +85,8 @@ void station_1_run()
 
     // GO STRAIGHT UNTIL OBSTACLE
     reset_encoders();
-    move_motor_constant(2000, 2000);
+    disable_pid_control();
+    move_motor(2000, 2000);
     while (get_obstacle_distance() > obstacle_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
@@ -93,18 +94,19 @@ void station_1_run()
     stop_motor(); // Stop after reaching target distance
     printf("Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
-    // TURN RIGHT
+    // TURN RIGHT 90 DEGREES
     sleep_ms(1000);
-    turn_motor(RIGHT_WHEEL, 90.0f);
+    turn_motor(RIGHT_WHEEL, 90.0f, PWM_MAX, PWM_MAX);
 
-    // MOVE TARGET DISTANCE AND STOP CAR
+    // GO STRAIGHT UNTIL TARGET DISTANCE
     sleep_ms(1000);
+    enable_pid_control();
     move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
-    stop_motor(); // Stop after reaching target distance
+    stop_motor_pid(); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
 }
 

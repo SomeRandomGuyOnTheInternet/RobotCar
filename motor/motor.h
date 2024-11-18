@@ -29,16 +29,32 @@
 #define FULL_CIRCLE 360.0f
 #define NO_ANGLE -1.0f
 
+typedef enum {
+    STOP,
+    FORWARD,
+    REVERSE,
+    LEFT_TURN,
+    RIGHT_TURN,
+    DISABLED
+} PIDState;
+
 // Function prototypes
 void motor_init();
 void motor_pwm_init();
+
+// Movement functions
+void move_motor(float new_pwm_left, float new_pwm_right);
 void reverse_motor(float new_pwm_left, float new_pwm_right);
+void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right);
 void stop_motor();
-void turn_motor(int direction, float angle);
-void move_motor_pid(float new_target_speed);
-void move_motor_constant(float new_pwm_left, float new_pwm_right);
 
 // PID control functions
+void enable_pid_control();
+void disable_pid_control();
+void move_motor_pid(float new_target_speed);
+void reverse_motor_pid(float new_target_speed);
+void turn_motor_pid(int direction, float angle, float new_target_speed);
+void stop_motor_pid();
 float compute_pid_pwm(float target_speed, float current_value, float *integral, float *prev_error);
 void pid_task(void *params);
 

@@ -13,6 +13,7 @@ float prev_error_right = 0.0;
 
 static bool use_pid_control = false;
 static float target_speed = 15.0;
+static PIDState pid_state = DISABLED;
 
 // Function to move motors forward
 void move_motor(float new_pwm_left, float new_pwm_right)
@@ -30,10 +31,6 @@ void move_motor(float new_pwm_left, float new_pwm_right)
 // Function to move backward
 void reverse_motor(float new_pwm_left, float new_pwm_right)
 {
-    use_pid_control = false;
-    stop_motor();
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwm_left);
     pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), new_pwm_right);
 
@@ -48,29 +45,9 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
     gpio_put(R_MOTOR_ENB, 1);
 }
 
-// Function to stop
-void stop_motor()
-{
-    use_pid_control = false;
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    // Turn off all motors
-    gpio_put(L_MOTOR_IN1, 0);
-    gpio_put(L_MOTOR_IN2, 0);
-    gpio_put(R_MOTOR_IN3, 0);
-    gpio_put(R_MOTOR_IN4, 0);
-
-    // Disable the enable pins
-    gpio_put(L_MOTOR_ENA, 0);
-    gpio_put(R_MOTOR_ENB, 0);
-}
-
 // Function to turn
-void turn_motor(int direction, float angle)
+void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
-    use_pid_control = false;
-    stop_motor();
-    vTaskDelay(pdMS_TO_TICKS(1000));
     reset_encoders();
     move_motor(PWM_MAX, PWM_MAX);
 
@@ -114,6 +91,62 @@ void turn_motor(int direction, float angle)
     }
 }
 
+// Function to stop
+void stop_motor()
+{
+    // Turn off all motors
+    gpio_put(L_MOTOR_IN1, 0);
+    gpio_put(L_MOTOR_IN2, 0);
+    gpio_put(R_MOTOR_IN3, 0);
+    gpio_put(R_MOTOR_IN4, 0);
+
+    // Disable the enable pins
+    gpio_put(L_MOTOR_ENA, 0);
+    gpio_put(R_MOTOR_ENB, 0);
+}
+
+void enable_pid_control()
+{
+    use_pid_control = true;
+}
+
+void disable_pid_control()
+{
+    use_pid_control = false;
+}
+
+void move_motor_pid(float new_target_speed)
+{
+    target_speed = new_target_speed;
+    enable_pid_control();
+    pid_state = FORWARD;
+    printf("PID Forward.\n");
+}
+
+void reverse_motor_pid(float new_target_speed)
+{
+    target_speed = new_target_speed;
+    enable_pid_control();
+    pid_state = REVERSE;
+    printf("PID reverse.\n");
+}
+
+void turn_motor_pid(int direction, float angle, float new_target_speed)
+{
+    target_speed = new_target_speed;
+    enable_pid_control();
+    pid_state = (direction == LEFT_WHEEL) ? LEFT_TURN : RIGHT_TURN;
+    printf("PID turn.\n");
+}
+
+void stop_motor_pid()
+{
+    target_speed = 0.0f;
+    enable_pid_control();
+    pid_state = STOP;
+    printf("PID stop.\n");
+}
+
 // PID Computation
 float compute_pid_pwm(float target_speed, float current_value, float *integral, float *prev_error)
 {
@@ -142,31 +175,31 @@ void pid_task(void *params)
 
             printf("Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
 
-            // Move motors with the computed PWM values
-            move_motor(pwm_left, pwm_right);
+            switch (pid_state)
+            {
+            case FORWARD:
+                move_motor(pwm_left, pwm_right);
+                break;
+            case REVERSE:
+                reverse_motor(pwm_left, pwm_right);
+                break;
+            case LEFT_TURN:
+                turn_motor(LEFT_WHEEL, NO_ANGLE, PWM_MAX, PWM_MAX);
+                break;
+            case RIGHT_TURN:
+                turn_motor(RIGHT_WHEEL, NO_ANGLE, PWM_MAX, PWM_MAX);
+                break;
+            case STOP:
+                stop_motor();
+                break;
+            default:
+                use_pid_control = false;
+            }
         }
 
         // Wait for the next control period
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-}
-
-void move_motor_pid(float new_target_speed)
-{
-    stop_motor();
-    target_speed = new_target_speed;
-    use_pid_control = true;
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    printf("PID control enabled.\n");
-}
-
-void move_motor_constant(float new_pwm_left, float new_pwm_right)
-{
-    use_pid_control = false;
-    stop_motor();
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    move_motor(new_pwm_left, new_pwm_right);
-    printf("PID control disabled. Motors will run at constant speed.\n");
 }
 
 // Motor PWM Initialization
