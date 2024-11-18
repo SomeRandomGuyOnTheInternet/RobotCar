@@ -86,7 +86,8 @@ void station_1_run()
     // GO STRAIGHT UNTIL OBSTACLE
     reset_encoders();
     disable_pid_control();
-    move_motor(2000, 2000);
+    sleep_ms(500);
+    printf("Started ultrasonic obstacle detection.\n");
     while (get_obstacle_distance() > obstacle_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
@@ -95,13 +96,14 @@ void station_1_run()
     printf("Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
     // TURN RIGHT 90 DEGREES
-    sleep_ms(1000);
+    reset_encoders();
+    sleep_ms(500);
     turn_motor(RIGHT, 90.0f, PWM_MAX, PWM_MAX);
 
     // GO STRAIGHT UNTIL TARGET DISTANCE
-    sleep_ms(1000);
     reset_encoders();
     enable_pid_control();
+    sleep_ms(500);
     move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
@@ -109,6 +111,15 @@ void station_1_run()
     }
     stop_motor_pid(); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
+
+    // TURN CONTINUOUSLY LEFT
+    reset_encoders();
+    disable_pid_control();
+    sleep_ms(500);
+    printf("Turning left continuously.\n");
+    turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
+    sleep_ms(2000);
+    stop_motor();
 }
 
 int main()

@@ -75,15 +75,23 @@ float get_distance(Encoder *encoder) {
 
 // Distance functions
 float get_left_distance() {
-    return get_distance((Encoder *)&left_encoder);
+    float distance = get_distance((Encoder *)&left_encoder);
+    printf("Left distance: %f\n", distance);
+    return distance;
 }
 
 float get_right_distance() {
-    return get_distance((Encoder *)&right_encoder);
+    float distance = get_distance((Encoder *)&right_encoder);
+    printf("Right distance: %f\n", distance);
+    return distance;
 }
 
 float get_average_distance() {
-    return (get_left_distance() + get_right_distance()) / 2.0f;
+    float left_distance = get_left_distance();
+    float right_distance = get_right_distance();
+    float average_distance = (left_distance + right_distance) / 2.0f;
+    printf("Average distance: %f\n", average_distance);
+    return average_distance;
 }
 
 // Generalized speed calculation
@@ -110,16 +118,24 @@ float get_speed(Encoder *encoder, EncoderData *last_data) {
 // Speed functions
 float get_left_speed() {
     static EncoderData left_last_data = {0, 0};
-    return get_speed((Encoder *)&left_encoder, &left_last_data);
+    float speed = get_speed((Encoder *)&left_encoder, &left_last_data);
+    printf("Left speed: %f\n", speed);
+    return speed;
 }
 
 float get_right_speed() {
     static EncoderData right_last_data = {0, 0};
-    return get_speed((Encoder *)&right_encoder, &right_last_data);
+    float speed = get_speed((Encoder *)&right_encoder, &right_last_data);
+    printf("Right speed: %f\n", speed);
+    return speed;
 }
 
 float get_average_speed() {
-    return (get_left_speed() + get_right_speed()) / 2.0f;
+    float left_speed = get_left_speed();
+    float right_speed = get_right_speed();
+    float average_speed = (left_speed + right_speed) / 2.0f;
+    printf("Average speed: %f\n", average_speed);
+    return average_speed;
 }
 
 // Generalized encoder reset

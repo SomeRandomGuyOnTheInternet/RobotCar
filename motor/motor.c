@@ -48,7 +48,6 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 // Function to turn
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
-    reset_encoders();
     move_motor(new_pwm_left, new_pwm_right);
 
     // Motor to turn left
