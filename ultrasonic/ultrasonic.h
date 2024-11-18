@@ -1,29 +1,35 @@
-#ifndef ultrasonic_h
-#define ultrasonic_h
+#ifndef ULTRASONIC_H
+#define ULTRASONIC_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
-#define TRIGPIN 7
-#define ECHOPIN 6
+// Define ultrasonic sensor pins
+#define TRIGPIN 5
+#define ECHOPIN 4
 
-#define MIN_CM 10
-#define MAX_CM 400
+// Kalman filter state structure
+typedef struct kalman_state_ {
+    double q; // process noise covariance
+    double r; // measurement noise covariance
+    double x; // estimated value
+    double p; // estimation error covariance
+    double k; // kalman gain
+} kalman_state;
 
-typedef struct kalman_state_ kalman_state;
-
+// Function prototypes
 kalman_state *kalman_init(double q, double r, double p, double initial_value);
 void kalman_update(kalman_state *state, double measurement);
 
 void ultrasonic_init();
-void read_echo_pulse();
-void set_start_time(uint gpio, uint32_t events);
-void set_pulse_length(uint gpio, uint32_t events);
-void send_pulse();
-uint64_t get_pulse_length();
-double get_cm(kalman_state *state);
+void send_echo_pulse();
+void read_echo_pulse(uint gpio, uint32_t events);
+double get_obstacle_distance();
 
 #endif

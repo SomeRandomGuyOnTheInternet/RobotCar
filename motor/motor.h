@@ -10,6 +10,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "encoder.h"
 
 // Define motor pins
 #define L_MOTOR_IN1 0 // GPIO pin for L motor input 1
@@ -20,56 +21,23 @@
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
 #define R_MOTOR_ENB 22 // GPIO pin for R motor enable
 
-// Global values to be called
-extern bool turning_active;
-extern volatile int stop_running;
+#define PWM_BASE 0
+#define PWM_MIN 1600
+#define PWM_MAX 3125
 
-// PID Values (Testing)
-#define KP 0.005f
-#define KI 0.002f
-#define KD 0.006f
-
-#define M_PI 3.14159265358979323846
-
-//PWM values for movement
-#define MAX_DUTY_CYCLE 1.0f
-#define MIN_DUTY_CYCLE 0.0f
-
-/*PWM for line following-hakam look here*/
-#define MAX_LINE_DUTY_CYCLE 0.60f
-#define MIN_LINE_DUTY_CYCLE 0.50f
-
-//Movement Enum for direction
-typedef enum {
-    FORWARD,
-    BACKWARD,
-    STOP,
-    TURN_LEFT,
-    TURN_RIGHT,
-    MOTOR_ON_LINE
-} MovementDirection;
-
-// Motor control type
-typedef struct {
-    uint32_t ena_pin;         // GPIO pin for PWM enable (e.g., L_MOTOR_ENA or R_MOTOR_ENB)
-    uint32_t in1_pin;         // GPIO pin for direction control 1 (e.g., L_MOTOR_IN1 or R_MOTOR_IN3)
-    uint32_t in2_pin;         // GPIO pin for direction control 2 (e.g., L_MOTOR_IN2 or R_MOTOR_IN4)
-    float current_speed;      // Current speed of the motor
-    float target_speed;       // Target speed for the motor
-    float target_position;    // Target position (if needed for positional control)
-    float current_position;   // Current position 
-} MotorConfig;
-
-// PID control variables
-typedef struct {
-    float integral;
-    float prev_error;
-} PIDState;
-
-// Prototype functions
+// Function prototypes
 void motor_init();
-void move_car(MovementDirection direction, float speed, float angle);
+void motor_pwm_init();
+void reverse_motor(float new_pwm_left, float new_pwm_right);
+void stop_motor();
+void turn_motor(int direction, float angle);
+void move_motor_pid(float new_target_speed);
+void move_motor_constant(float new_pwm_left, float new_pwm_right);
 
-#endif
+// PID control functions
+float compute_pid_pwm(float target_speed, float current_value, float *integral, float *prev_error);
+void pid_task(void *params);
+
+#endif // MOTOR_H
 
 

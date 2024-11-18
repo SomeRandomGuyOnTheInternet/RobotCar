@@ -21,7 +21,7 @@
 #define WHEEL_CIRCUMFERENCE 20.0
 #define WHEEL_TO_WHEEL_DISTANCE 10.0
 #define PULSES_PER_REVOLUTION 20.0  // Number of pulses per wheel revolution
-#define PI 3.14159265
+#define PI 3.14159265358979323846
 
 #define LEFT_WHEEL 0
 #define RIGHT_WHEEL 1
@@ -31,12 +31,11 @@ typedef struct {
     uint64_t timestamp;
 } EncoderData;
 
-extern volatile EncoderData left_data;
-extern volatile EncoderData right_data;
-
-// Mutexes for each encoder
-extern SemaphoreHandle_t left_data_mutex;
-extern SemaphoreHandle_t right_data_mutex;
+typedef struct {
+    EncoderData data;
+    SemaphoreHandle_t mutex;
+    QueueHandle_t queue;
+} Encoder;
 
 // Functions for encoders
 void encoder_init();

@@ -81,63 +81,30 @@ void station_1_run()
 
     float target_speed = 10.0f;
     float target_distance = 200.0f;
+    float obstacle_distance = 21.0f;
 
-    // kalman_state *state = kalman_init(5.0, 0.5, 0.1, 100.0);
-    // bool obstacle_detected = false;
-    // double cm, prev_cm;
-
-    // // GO STRAIGHT UNTIL OBSTACLE
-    // reset_encoders();
-    // while (1)
-    // {
-    //     // Read ultrasonic sensor
-    //     for (int i = 0; i < 20; i++)
-    //     {
-    //         cm = get_cm(state);
-    //     }
-    //     obstacle_detected = cm < MIN_CM;
-
-    //     if (cm != prev_cm)
-    //     {
-    //         printf("Obstacle distance: %.2lf cm\n", cm);
-    //         printf("----\n");
-    //         prev_cm = cm;
-    //     }
-
-    //     printf("----\n");
-    //     // Control motor based on obstacle detection
-    //     if (obstacle_detected)
-    //     {
-    //         printf("Obstacle detected\n");
-    //         move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
-    //         vTaskDelay(pdMS_TO_TICKS(500)); // Small pause
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         move_car(FORWARD, target_speed, 0.0f);
-    //     }
-    // }
-
-    // // TURN RIGHT
-    // turn_motor(RIGHT_WHEEL);
-    // sleep_ms(1000);
-    // double previous_distance = total_average_distance;
-
-    // MOVE TARGET DISTANCE
+    // GO STRAIGHT UNTIL OBSTACLE
     reset_encoders();
-    double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
-    move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
+    move_motor_constant(2000, 2000);
+    while (get_obstacle_distance() > obstacle_distance)
+    {
+        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+    }
+    stop_motor(); // Stop after reaching target distance
+    printf("Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
+
+    // TURN RIGHT
+    sleep_ms(1000);
+    turn_motor(RIGHT_WHEEL, 90.0f);
+
+    // MOVE TARGET DISTANCE AND STOP CAR
+    sleep_ms(1000);
+    move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
-    double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
-    float average_speed = target_distance / (end_timestamp - start_timestamp);
-    printf("Average speed: %f \n", average_speed);
-
-    // STOP CAR
-    move_car(STOP, 0.0f, 0.0f); // Stop after reaching target distance
+    stop_motor(); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
 }
 
@@ -161,3 +128,31 @@ int main()
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
+// move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
+// while (get_average_distance() < target_distance)
+// {
+//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+// }
+// double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
+// float average_speed = target_distance / (end_timestamp - start_timestamp);
+// printf("Average speed: %f \n", average_speed);
