@@ -24,6 +24,10 @@
 #define PWM_MIN 1600
 #define PWM_MAX 3125
 
+#define PI 3.14159265358979323846
+#define FULL_CIRCLE 360.0f
+#define NO_ANGLE -1.0f
+
 // Function prototypes
 void motor_init();
 void motor_pwm_init();

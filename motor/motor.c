@@ -11,8 +11,8 @@ float integral_right = 0.0;
 float prev_error_left = 0.0;
 float prev_error_right = 0.0;
 
-volatile bool use_pid_control = false;
-volatile float target_speed = 15.0;
+static bool use_pid_control = false;
+static float target_speed = 15.0;
 
 // Function to move motors forward
 void move_motor(float new_pwm_left, float new_pwm_right)
@@ -30,7 +30,6 @@ void move_motor(float new_pwm_left, float new_pwm_right)
 // Function to move backward
 void reverse_motor(float new_pwm_left, float new_pwm_right)
 {
-    // stopMotor();
     sleep_ms(50);
 
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwm_left);
@@ -62,17 +61,14 @@ void stop_motor()
 }
 
 // Function to turn
-// 0 - left, 1 - right
 void turn_motor(int direction, float angle)
 {
-    int target_distance = (angle / 360) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-
     stop_motor();
     reset_encoders();
     move_motor(PWM_MAX, PWM_MAX);
 
     // Motor to turn left
-    if (direction == 0)
+    if (direction == LEFT_WHEEL)
     {
         // Reverse left wheel, forward right wheel
         gpio_put(L_MOTOR_IN1, 1);
@@ -98,14 +94,17 @@ void turn_motor(int direction, float angle)
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    while (get_average_distance() < target_distance)
+    if (angle != NO_ANGLE)
     {
-        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+        int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
+        while (get_average_distance() < target_distance)
+        {
+            vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+        }
+        stop_motor();
+        reset_encoders();
+        sleep_ms(50);
     }
-
-    stop_motor();
-    reset_encoders();
-    sleep_ms(50);
 }
 
 // PID Computation
@@ -117,11 +116,11 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
-    // Clamp control signal to PWM range (0 to PWM_MAX for 100% duty cycle)
-    if (control_signal < 0)
-        control_signal = 0;
-    if (control_signal > PWM_MAX)
-        control_signal = PWM_MAX;
+    // // Clamp control signal to PWM range (0 to PWM_MAX for 100% duty cycle)
+    // if (control_signal < PWM_MIN)
+    //     control_signal = PWM_MIN;
+    // if (control_signal > PWM_MAX)
+    //     control_signal = PWM_MAX;
 
     return control_signal;
 }
