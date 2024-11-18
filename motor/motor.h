@@ -21,7 +21,6 @@
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
 #define R_MOTOR_ENB 22 // GPIO pin for R motor enable
 
-#define PWM_BASE 0
 #define PWM_MIN 1600
 #define PWM_MAX 3125
 
