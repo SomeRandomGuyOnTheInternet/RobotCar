@@ -51,6 +51,9 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 // Function to stop
 void stop_motor()
 {
+    use_pid_control = false;
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
     // Turn off all motors
     gpio_put(L_MOTOR_IN1, 0);
     gpio_put(L_MOTOR_IN2, 0);
