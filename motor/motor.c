@@ -1,9 +1,9 @@
 #include "motor.h"
 
 // PID parameters
-float Kp = 2.0;
-float Ki = 2.0;
-float Kd = 0.0;
+float Kp = 0.009f;
+float Ki = 0.002f;
+float Kd = 0.006f;
 
 // PID control variables
 float integral_left = 0.0;
@@ -30,7 +30,9 @@ void move_motor(float new_pwm_left, float new_pwm_right)
 // Function to move backward
 void reverse_motor(float new_pwm_left, float new_pwm_right)
 {
-    sleep_ms(50);
+    use_pid_control = false;
+    stop_motor();
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), new_pwm_left);
     pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), new_pwm_right);
@@ -63,7 +65,9 @@ void stop_motor()
 // Function to turn
 void turn_motor(int direction, float angle)
 {
+    use_pid_control = false;
     stop_motor();
+    vTaskDelay(pdMS_TO_TICKS(1000));
     reset_encoders();
     move_motor(PWM_MAX, PWM_MAX);
 
@@ -116,13 +120,10 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
-    // // Clamp control signal to PWM range (0 to PWM_MAX for 100% duty cycle)
-    // if (control_signal < PWM_MIN)
-    //     control_signal = PWM_MIN;
-    // if (control_signal > PWM_MAX)
-    //     control_signal = PWM_MAX;
+    // Scale the control signal to the PWM range
+    float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
 
-    return control_signal;
+    return pwm_value;
 }
 
 // PID Task

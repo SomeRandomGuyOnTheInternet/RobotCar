@@ -23,6 +23,7 @@
 
 #define PWM_MIN 1600
 #define PWM_MAX 3125
+#define MAX_SPEED 20.0f
 
 #define PI 3.14159265358979323846
 #define FULL_CIRCLE 360.0f
