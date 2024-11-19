@@ -118,32 +118,32 @@ void disable_pid_control()
 
 void move_motor_pid(float new_target_speed)
 {
-    target_speed = new_target_speed;
     enable_pid_control();
+    target_speed = new_target_speed;
     pid_state = FORWARD;
     printf("PID Forward.\n");
 }
 
 void reverse_motor_pid(float new_target_speed)
 {
-    target_speed = new_target_speed;
     enable_pid_control();
+    target_speed = new_target_speed;
     pid_state = REVERSE;
     printf("PID reverse.\n");
 }
 
 void turn_motor_pid(int direction, float angle, float new_target_speed)
 {
-    target_speed = new_target_speed;
     enable_pid_control();
+    target_speed = new_target_speed;
     pid_state = (direction == LEFT) ? LEFT_TURN : RIGHT_TURN;
     printf("PID %s turn.\n", (direction == LEFT) ? "left" : "right");
 }
 
 void stop_motor_pid()
 {
-    target_speed = 0.0f;
     enable_pid_control();
+    target_speed = 0.0f;
     pid_state = STOP;
     printf("PID stop.\n");
 }
@@ -183,7 +183,9 @@ void pid_task(void *params)
         if (use_pid_control)
         {
             // Compute PID control signals
+            printf("Left ");
             float pwm_left = compute_pid_pwm(target_speed, get_left_speed(), &integral_left, &prev_error_left);
+            printf("Right ");
             float pwm_right = compute_pid_pwm(target_speed, get_right_speed(), &integral_right, &prev_error_right);
 
             printf("Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
