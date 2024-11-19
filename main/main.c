@@ -68,68 +68,88 @@ void init_all()
 // Function to init all interrupts
 void init_interrupts()
 {
-    printf("[MAIN/START] Interrupts initialised\n");
     // Initialise interrupts for needed sensors
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
+    printf("[MAIN/START] Interrupts initialised\n");
 }
 
 void station_1_run()
 {
     printf("[MAIN] Starting test\n");
 
-    // GO STRAIGHT UNTIL OBSTACLE
-    float obstacle_distance = 21.0f;
-    reset_encoders();
-    disable_pid_control();
-    sleep_ms(500);
-    printf("==========\n");
-    printf("[MAIN] Started ultrasonic obstacle detection.\n");
-    while (get_obstacle_distance() > obstacle_distance)
-    {
-        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    }
-    stop_motor(); // Stop after reaching target distance
-    printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
+    // // GO STRAIGHT UNTIL OBSTACLE
+    // float obstacle_distance = 21.0f;
+    // reset_encoders();
+    // disable_pid_control();
+    // sleep_ms(500);
+    // printf("==========\n");
+    // printf("[MAIN] Started ultrasonic obstacle detection.\n");
+    // while (get_obstacle_distance() > obstacle_distance)
+    // {
+    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+    // }
+    // stop_motor(); // Stop after reaching target distance
+    // printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
-    // TURN AT TARGET ANGLE
-    float target_angle = 90.0f;
+    // // TURN AT TARGET ANGLE
+    // float target_angle = 90.0f;
+    // int turn_direction = RIGHT;
+    // while (1)
+    // {
+    //     reset_encoders();
+    //     sleep_ms(500);
+    //     printf("==========\n");
+    //     printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
+    //     turn_motor(turn_direction, target_angle, PWM_MAX, PWM_MAX);
+    //     printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
+    //     stop_motor();
+    // }
+
+    // TURN CONTINUOUS WITH PID
+    float target_speed = 0.0f;
     int turn_direction = RIGHT;
     reset_encoders();
-    sleep_ms(500);
-    printf("==========\n");
-    printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-    turn_motor(turn_direction, target_angle, PWM_MAX, PWM_MAX);
-    printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-
-    // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-    float target_speed = 10.0f;
-    float target_distance = 200.0f;
-    reset_encoders();
     enable_pid_control();
-    sleep_ms(500);
     printf("==========\n");
-    printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-    move_motor_pid(target_speed);
-    while (get_average_distance() < target_distance)
+    for (int i = 0; i < 100; i++)
     {
-        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    }
-    stop_motor_pid(); // Stop after reaching target distance
-    printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
+        sleep_ms(100);
+        printf("[MAIN] Turning %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
+        turn_motor_pid(turn_direction, target_speed);
 
-    // TURN CONTINUOUSLY IN ONE DIRECTION
-    turn_direction = LEFT;
-    reset_encoders();
-    disable_pid_control();
-    sleep_ms(500);
-    printf("==========\n");
-    printf("[MAIN] Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
-    turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
-    sleep_ms(2000);
-    stop_motor();
-    printf("[MAIN] Stopped turning left.\n");
+        if (target_speed < 40.0f) target_speed += 5.0f;
+    }
+    stop_motor_pid();
+
+    // // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
+    // float target_speed = 20.0f;
+    // float target_distance = 999999.0f;
+    // reset_encoders();
+    // enable_pid_control();
+    // sleep_ms(500);
+    // printf("==========\n");
+    // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
+    // move_motor_pid(target_speed);
+    // while (get_average_distance() < target_distance)
+    // {
+    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+    // }
+    // stop_motor_pid(); // Stop after reaching target distance
+    // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
+
+    // // TURN CONTINUOUSLY IN ONE DIRECTION
+    // int turn_direction = LEFT;
+    // reset_encoders();
+    // disable_pid_control();
+    // sleep_ms(500);
+    // printf("==========\n");
+    // printf("[MAIN] Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
+    // turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
+    // sleep_ms(2000);
+    // stop_motor();
+    // printf("[MAIN] Stopped turning left.\n");
 }
 
 int main()
@@ -152,24 +172,6 @@ int main()
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
 // move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)

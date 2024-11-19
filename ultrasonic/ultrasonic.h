@@ -11,8 +11,10 @@
 #include "semphr.h"
 
 // Define ultrasonic sensor pins
-#define TRIGPIN 5
-#define ECHOPIN 4
+#define TRIGPIN 7
+#define ECHOPIN 6
+
+#define INVALID_DISTANCE -1.0
 
 // Kalman filter state structure
 typedef struct kalman_state_ {

@@ -21,9 +21,11 @@
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
 #define R_MOTOR_ENB 22 // GPIO pin for R motor enable
 
+#define PWM_MIN_LEFT 1400
+#define PWM_MIN_RIGHT 1400
 #define PWM_MIN 1600
 #define PWM_MAX 3125
-#define MAX_SPEED 20.0f
+#define MAX_SPEED 30.0f
 
 #define PI 3.14159265358979323846
 #define FULL_CIRCLE 360.0f
@@ -54,7 +56,7 @@ void enable_pid_control();
 void disable_pid_control();
 void move_motor_pid(float new_target_speed);
 void reverse_motor_pid(float new_target_speed);
-void turn_motor_pid(int direction, float angle, float new_target_speed);
+void turn_motor_pid(int direction, float new_target_speed);
 void stop_motor_pid();
 float compute_pid_pwm(float target_speed, float current_value, float *integral, float *prev_error);
 void pid_task(void *params);

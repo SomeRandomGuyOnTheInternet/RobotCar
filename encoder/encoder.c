@@ -76,13 +76,13 @@ float get_distance(Encoder *encoder) {
 // Distance functions
 float get_left_distance() {
     float distance = get_distance((Encoder *)&left_encoder);
-    printf("[ENCODER] Left distance: %f\n", distance);
+    // printf("[DISTANCE] Left distance: %f\n", distance);
     return distance;
 }
 
 float get_right_distance() {
     float distance = get_distance((Encoder *)&right_encoder);
-    printf("[ENCODER] Right distance: %f\n", distance);
+    // printf("[DISTANCE] Right distance: %f\n", distance);
     return distance;
 }
 
@@ -90,7 +90,7 @@ float get_average_distance() {
     float left_distance = get_left_distance();
     float right_distance = get_right_distance();
     float average_distance = (left_distance + right_distance) / 2.0f;
-    printf("[ENCODER] Average distance: %f\n", average_distance);
+    // printf("[DISTANCE] Average distance: %f\n", average_distance);
     return average_distance;
 }
 
@@ -119,14 +119,14 @@ float get_speed(Encoder *encoder, EncoderData *last_data) {
 float get_left_speed() {
     static EncoderData left_last_data = {0, 0};
     float speed = get_speed((Encoder *)&left_encoder, &left_last_data);
-    printf("[ENCODER] Left speed: %f\n", speed);
+    printf("[SPEED] Left speed: %f\n", speed);
     return speed;
 }
 
 float get_right_speed() {
     static EncoderData right_last_data = {0, 0};
     float speed = get_speed((Encoder *)&right_encoder, &right_last_data);
-    printf("[ENCODER] Right speed: %f\n", speed);
+    printf("[SPEED] Right speed: %f\n", speed);
     return speed;
 }
 
@@ -134,7 +134,7 @@ float get_average_speed() {
     float left_speed = get_left_speed();
     float right_speed = get_right_speed();
     float average_speed = (left_speed + right_speed) / 2.0f;
-    printf("[ENCODER] Average speed: %f\n", average_speed);
+    printf("[SPEED] Average speed: %f\n", average_speed);
     return average_speed;
 }
 
@@ -185,6 +185,6 @@ void encoder_init() {
     right_encoder.mutex = xSemaphoreCreateMutex();
     right_encoder.queue = xQueueCreate(1, sizeof(EncoderData));
 
-    xTaskCreate(encoder_task, "Left Encoder Task", configMINIMAL_STACK_SIZE * 4, (void *)&left_encoder, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(encoder_task, "Left Encoder Task", configMINIMAL_STACK_SIZE * 4, (void *)&left_encoder, tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(encoder_task, "Right Encoder Task", configMINIMAL_STACK_SIZE * 4, (void *)&right_encoder, tskIDLE_PRIORITY + 1, NULL);
 }

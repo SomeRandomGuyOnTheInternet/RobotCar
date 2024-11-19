@@ -1,15 +1,18 @@
 #include "motor.h"
 
 // PID parameters
-float Kp = 0.009f;
-float Ki = 0.002f;
-float Kd = 0.006f;
+float Kp = 0.5f;
+float Ki = 0.00f;
+float Kd = 0.00f;
 
 // PID control variables
 float integral_left = 0.0;
 float integral_right = 0.0;
 float prev_error_left = 0.0;
 float prev_error_right = 0.0;
+
+static float pid_pwm_left = PWM_MIN_LEFT;
+static float pid_pwm_right = PWM_MIN_RIGHT;
 
 static float target_speed = 15.0;
 static bool use_pid_control = false;
@@ -82,10 +85,9 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
     {
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        printf("[TURN] Turn target distance: %d\n", target_distance);
-        while (get_average_distance() < target_distance)
+        while (target_distance - get_left_distance() >= 0.005)
         {
-            vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+            vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
         }
         if (use_pid_control)
         {
@@ -135,7 +137,7 @@ void reverse_motor_pid(float new_target_speed)
     printf("[PID] PID reverse.\n");
 }
 
-void turn_motor_pid(int direction, float angle, float new_target_speed)
+void turn_motor_pid(int direction, float new_target_speed)
 {
     enable_pid_control();
     target_speed = new_target_speed;
@@ -162,20 +164,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 
     printf("Control Signal: %.2f\n", control_signal);
 
-    // Scale the control signal to the PWM range
-    float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
-
-    // // Limit the PWM value to the valid range
-    // if (pwm_value < PWM_MIN)
-    // {
-    //     pwm_value = PWM_MIN;
-    // }
-    // else if (pwm_value > PWM_MAX)
-    // {
-    //     pwm_value = PWM_MAX;
-    // }
-
-    return pwm_value;
+    return control_signal;
 }
 
 // PID Task
@@ -186,27 +175,42 @@ void pid_task(void *params)
         if (use_pid_control)
         {
             // Compute PID control signals
-            printf("[PID] Left ");
-            float pwm_left = compute_pid_pwm(target_speed, get_left_speed(), &integral_left, &prev_error_left);
-            printf("[PID] Right ");
-            float pwm_right = compute_pid_pwm(target_speed, get_right_speed(), &integral_right, &prev_error_right);
+            pid_pwm_left += compute_pid_pwm(target_speed, get_left_speed(), &integral_left, &prev_error_left);
+            pid_pwm_right += compute_pid_pwm(target_speed, get_right_speed(), &integral_right, &prev_error_right);
 
-            printf("[PID] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
-            printf("[PID] Running the motor at 1600 PWM to avoid shorting the board\n");
+            if (pid_pwm_left < PWM_MIN_LEFT)
+            {
+                pid_pwm_left = PWM_MIN_LEFT;
+            }
+            else if (pid_pwm_left > PWM_MAX)
+            {
+                pid_pwm_left = PWM_MAX;
+            }
+
+            if (pid_pwm_right < PWM_MIN_RIGHT)
+            {
+                pid_pwm_right = PWM_MIN_RIGHT;
+            }
+            else if (pid_pwm_right > PWM_MAX)
+            {
+                pid_pwm_right = PWM_MAX;
+            }
+
+            printf("[PID] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pid_pwm_left, pid_pwm_right);
 
             switch (pid_state)
             {
             case FORWARD:
-                move_motor(PWM_MIN, PWM_MIN);
+                move_motor(pid_pwm_left, pid_pwm_right);
                 break;
             case REVERSE:
-                reverse_motor(PWM_MIN, PWM_MIN);
+                reverse_motor(pid_pwm_left, pid_pwm_right);
                 break;
             case LEFT_TURN:
-                turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
+                turn_motor(LEFT, CONTINUOUS, pid_pwm_left, pid_pwm_right);
                 break;
             case RIGHT_TURN:
-                turn_motor(RIGHT, CONTINUOUS, PWM_MAX, PWM_MAX);
+                turn_motor(RIGHT, CONTINUOUS, pid_pwm_left, pid_pwm_right);
                 break;
             case STOP:
                 stop_motor();
