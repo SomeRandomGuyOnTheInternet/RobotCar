@@ -46,29 +46,29 @@ void init_all()
 
     // Initialise motor pins and PWM
     motor_init();
-    printf("Motor pins and PWM initialised\n");
+    printf("[MAIN/START] Motor pins and PWM initialised\n");
     sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
-    printf("Ultrasonic pins initialised\n");
+    printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
     // Initialise magnetometer
     gy511_init();
-    printf("Magnetometer pins initialised\n");
+    printf("[MAIN/START] Magnetometer pins initialised\n");
     sleep_ms(500);
 
     // Initialise encoder sensor
     encoder_init();
-    printf("Encoder pins initialised\n");
+    printf("[MAIN/START] Encoder pins initialised\n");
     sleep_ms(500);
 }
 
 // Function to init all interrupts
 void init_interrupts()
 {
-    printf("Interrupts initialised\n");
+    printf("[MAIN/START] Interrupts initialised\n");
     // Initialise interrupts for needed sensors
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &callbacks);
