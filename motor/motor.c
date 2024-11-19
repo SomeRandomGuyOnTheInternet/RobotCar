@@ -85,7 +85,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
     {
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        while (target_distance - get_left_distance() >= 0.05)
+        while (target_distance - get_average_distance() >= 0.05)
         {
             vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
         }
@@ -162,8 +162,6 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
-    printf("Control Signal: %.2f\n", control_signal);
-
     return control_signal;
 }
 
@@ -188,12 +186,12 @@ void pid_task(void *params)
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();
             float average_speed = get_average_speed();
-            printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f, PID State: %d\n", target_speed, left_speed, right_speed, average_speed, pid_state);
+            printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
 
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
 
-            if (average_speed < 5 && pid_state != STOP)
+            if (average_speed < 5)
             {
                 printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_KICKSTART;

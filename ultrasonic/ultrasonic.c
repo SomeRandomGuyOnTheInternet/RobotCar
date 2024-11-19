@@ -91,7 +91,7 @@ void ultrasonic_task(void *params)
             }
 
             // Delay to control the measurement rate (e.g., 10 Hz)
-            vTaskDelay(pdMS_TO_TICKS(100)); // 100ms delay
+            vTaskDelay(pdMS_TO_TICKS(10)); // 100ms delay
         }
     }
 }
