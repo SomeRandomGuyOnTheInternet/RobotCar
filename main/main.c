@@ -94,7 +94,7 @@ void station_1_run()
     // printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
     // // TURN AT TARGET ANGLE
-    // float target_angle = 90.0f;
+    // float target_angle = 45.0f;
     // int turn_direction = RIGHT;
     // while (1)
     // {
@@ -108,18 +108,18 @@ void station_1_run()
     // }
 
     // TURN CONTINUOUS WITH PID
-    float target_speed = 0.0f;
+    float target_speed = MIN_SPEED;
     int turn_direction = RIGHT;
     reset_encoders();
     enable_pid_control();
     printf("==========\n");
-    for (int i = 0; i < 100; i++)
+    while (1)
     {
         sleep_ms(100);
-        printf("[MAIN] Turning %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
-        turn_motor_pid(turn_direction, target_speed);
+        printf("[MAIN] Moving %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
+        move_motor_pid(target_speed);
 
-        if (target_speed < 40.0f) target_speed += 5.0f;
+        target_speed = (target_speed < MAX_SPEED) ? target_speed * 1.01f : MAX_SPEED;
     }
     stop_motor_pid();
 

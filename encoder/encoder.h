@@ -19,8 +19,10 @@
 // Define encoder disk specs
 #define ENCODER_NOTCHES 20.0
 #define WHEEL_CIRCUMFERENCE 20.0
-#define WHEEL_TO_WHEEL_DISTANCE 10.3
+#define WHEEL_TO_WHEEL_DISTANCE 10.0
 #define PULSES_PER_REVOLUTION 20.0  // Number of pulses per wheel revolution
+
+#define INVALID_SPEED -1.0
 
 #define LEFT 0
 #define RIGHT 1
@@ -32,8 +34,8 @@ typedef struct {
 
 typedef struct {
     EncoderData data;
+    EncoderData last_data;
     SemaphoreHandle_t mutex;
-    QueueHandle_t queue;
 } Encoder;
 
 // Functions for encoders
