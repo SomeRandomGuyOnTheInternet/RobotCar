@@ -48,8 +48,6 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 // Function to turn
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
-    move_motor(new_pwm_left, new_pwm_right);
-
     // Motor to turn left
     if (direction == LEFT)
     {
@@ -77,13 +75,26 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    if (angle != CONTINUOUS)
+    if (angle == CONTINUOUS)
     {
+        pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
+        pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
+    }
+    else
+    {
+        stop_motor();
+        reset_encoders();
+
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
+
+        pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
+        pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
+
         while (get_average_distance() < target_distance)
         {
             vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
         }
+
         stop_motor();
         reset_encoders();
     }
@@ -192,10 +203,10 @@ void pid_task(void *params)
                 reverse_motor(pwm_left, pwm_right);
                 break;
             case LEFT_TURN:
-                turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
+                turn_motor(LEFT, CONTINUOUS, pwm_left, pwm_right);
                 break;
             case RIGHT_TURN:
-                turn_motor(RIGHT, CONTINUOUS, PWM_MAX, PWM_MAX);
+                turn_motor(RIGHT, CONTINUOUS, pwm_left, pwm_right);
                 break;
             case STOP:
                 stop_motor();
