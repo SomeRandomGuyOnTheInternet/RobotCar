@@ -77,7 +77,7 @@ void init_interrupts()
 
 void station_1_run()
 {
-    printf("Starting test\n");
+    printf("[MAIN] Starting test\n");
 
     // GO STRAIGHT UNTIL OBSTACLE
     float obstacle_distance = 21.0f;
@@ -85,13 +85,13 @@ void station_1_run()
     disable_pid_control();
     sleep_ms(500);
     printf("==========\n");
-    printf("Started ultrasonic obstacle detection.\n");
+    printf("[MAIN] Started ultrasonic obstacle detection.\n");
     while (get_obstacle_distance() > obstacle_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     stop_motor(); // Stop after reaching target distance
-    printf("Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
+    printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
     // TURN AT TARGET ANGLE
     float target_angle = 90.0f;
@@ -99,9 +99,9 @@ void station_1_run()
     reset_encoders();
     sleep_ms(500);
     printf("==========\n");
-    printf("Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
+    printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
     turn_motor(turn_direction, target_angle, PWM_MAX, PWM_MAX);
-    printf("Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
+    printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
 
     // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
     float target_speed = 10.0f;
@@ -110,14 +110,14 @@ void station_1_run()
     enable_pid_control();
     sleep_ms(500);
     printf("==========\n");
-    printf("Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
+    printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
     move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     stop_motor_pid(); // Stop after reaching target distance
-    printf("Reached %f cm. Stopping.\n", target_distance);
+    printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
 
     // TURN CONTINUOUSLY IN ONE DIRECTION
     turn_direction = LEFT;
@@ -125,11 +125,11 @@ void station_1_run()
     disable_pid_control();
     sleep_ms(500);
     printf("==========\n");
-    printf("Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
+    printf("[MAIN] Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
     turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
     sleep_ms(2000);
     stop_motor();
-    printf("Stopped turning left.\n");
+    printf("[MAIN] Stopped turning left.\n");
 }
 
 int main()

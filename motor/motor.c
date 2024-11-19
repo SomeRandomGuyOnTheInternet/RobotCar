@@ -82,15 +82,14 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
     {
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        printf("--------------------\n");
-        printf("Turn target distance: %d\n", target_distance);
+        printf("[TURN] Turn target distance: %d\n", target_distance);
         while (get_average_distance() < target_distance)
         {
             vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
         }
         if (use_pid_control)
         {
-            printf("Turn target distance reached on PID. Stopping.\n");
+            printf("[TURN] Turn target distance reached on PID. Stopping.\n");
             stop_motor_pid();
         }
     }
@@ -125,7 +124,7 @@ void move_motor_pid(float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = FORWARD;
-    printf("PID Forward.\n");
+    printf("[PID] PID Forward.\n");
 }
 
 void reverse_motor_pid(float new_target_speed)
@@ -133,7 +132,7 @@ void reverse_motor_pid(float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = REVERSE;
-    printf("PID reverse.\n");
+    printf("[PID] PID reverse.\n");
 }
 
 void turn_motor_pid(int direction, float angle, float new_target_speed)
@@ -141,7 +140,7 @@ void turn_motor_pid(int direction, float angle, float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = (direction == LEFT) ? LEFT_TURN : RIGHT_TURN;
-    printf("PID %s turn.\n", (direction == LEFT) ? "left" : "right");
+    printf("[PID] PID %s turn.\n", (direction == LEFT) ? "left" : "right");
 }
 
 void stop_motor_pid()
@@ -149,7 +148,7 @@ void stop_motor_pid()
     enable_pid_control();
     target_speed = 0.0f;
     pid_state = STOP;
-    printf("PID stop.\n");
+    printf("[PID] PID stop.\n");
 }
 
 // PID Computation
@@ -161,7 +160,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
-    printf("Control Signal: %.2f\n", control_signal);
+    printf("[PID] Control Signal: %.2f\n", control_signal);
 
     // Scale the control signal to the PWM range
     float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
@@ -187,13 +186,13 @@ void pid_task(void *params)
         if (use_pid_control)
         {
             // Compute PID control signals
-            printf("Left ");
+            printf("[PID] Left ");
             float pwm_left = compute_pid_pwm(target_speed, get_left_speed(), &integral_left, &prev_error_left);
-            printf("Right ");
+            printf("[PID] Right ");
             float pwm_right = compute_pid_pwm(target_speed, get_right_speed(), &integral_right, &prev_error_right);
 
-            printf("Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
-            printf("Running the motor at 1600 PWM to avoid shorting the board\n");
+            printf("[PID] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
+            printf("[PID] Running the motor at 1600 PWM to avoid shorting the board\n");
 
             switch (pid_state)
             {

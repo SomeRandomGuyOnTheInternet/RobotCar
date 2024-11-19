@@ -84,7 +84,7 @@ void ultrasonic_task(void *params)
         }
         else
         {
-            printf("Ultrasonic sensor timeout or no pulse detected.\n");
+            printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
         }
 
         // Delay to control the measurement rate (e.g., 10 Hz)
@@ -96,7 +96,7 @@ void ultrasonic_task(void *params)
 // Get filtered distance
 double get_obstacle_distance()
 {
-    printf("Distance: %.2f cm\n", latest_distance);
+    printf("[ULTRASONIC] Distance: %.2f cm\n", latest_distance);
     return latest_distance;
 }
 
