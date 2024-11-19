@@ -80,15 +80,20 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
 
     if (angle != CONTINUOUS)
     {
-        stop_motor();
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
+        printf("--------------------\n");
+        printf("Turn target distance: %d\n", target_distance);
         while (get_average_distance() < target_distance)
         {
+            printf("Turn target distance: %d\n", target_distance);
             vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
         }
-        stop_motor();
-        reset_encoders();
+        if (use_pid_control)
+        {
+            printf("Turn target distance reached on PID. Stopping.\n");
+            stop_motor_pid();
+        }
     }
 }
 

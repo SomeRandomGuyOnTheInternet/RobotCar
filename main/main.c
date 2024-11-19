@@ -79,14 +79,12 @@ void station_1_run()
 {
     printf("Starting test\n");
 
-    float target_speed = 10.0f;
-    float target_distance = 200.0f;
-    float obstacle_distance = 21.0f;
-
     // GO STRAIGHT UNTIL OBSTACLE
+    float obstacle_distance = 21.0f;
     reset_encoders();
     disable_pid_control();
     sleep_ms(500);
+    printf("==========\n");
     printf("Started ultrasonic obstacle detection.\n");
     while (get_obstacle_distance() > obstacle_distance)
     {
@@ -95,15 +93,24 @@ void station_1_run()
     stop_motor(); // Stop after reaching target distance
     printf("Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
-    // TURN RIGHT 90 DEGREES
+    // TURN AT TARGET ANGLE
+    float target_angle = 90.0f;
+    int turn_direction = RIGHT;
     reset_encoders();
     sleep_ms(500);
-    turn_motor(RIGHT, 90.0f, PWM_MAX, PWM_MAX);
+    printf("==========\n");
+    printf("Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
+    turn_motor(turn_direction, target_angle, PWM_MAX, PWM_MAX);
+    printf("Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
 
-    // GO STRAIGHT UNTIL TARGET DISTANCE
+    // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
+    float target_speed = 10.0f;
+    float target_distance = 200.0f;
     reset_encoders();
     enable_pid_control();
     sleep_ms(500);
+    printf("==========\n");
+    printf("Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
     move_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
@@ -112,14 +119,17 @@ void station_1_run()
     stop_motor_pid(); // Stop after reaching target distance
     printf("Reached %f cm. Stopping.\n", target_distance);
 
-    // TURN CONTINUOUSLY LEFT
+    // TURN CONTINUOUSLY IN ONE DIRECTION
+    turn_direction = LEFT;
     reset_encoders();
     disable_pid_control();
     sleep_ms(500);
-    printf("Turning left continuously.\n");
-    turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
+    printf("==========\n");
+    printf("Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
+    turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
     sleep_ms(2000);
     stop_motor();
+    printf("Stopped turning left.\n");
 }
 
 int main()
