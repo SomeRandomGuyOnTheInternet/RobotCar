@@ -86,7 +86,6 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         printf("Turn target distance: %d\n", target_distance);
         while (get_average_distance() < target_distance)
         {
-            printf("Turn target distance: %d\n", target_distance);
             vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
         }
         if (use_pid_control)
