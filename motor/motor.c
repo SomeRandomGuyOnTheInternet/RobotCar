@@ -160,7 +160,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
-    printf("[PID] Control Signal: %.2f\n", control_signal);
+    printf("Control Signal: %.2f\n", control_signal);
 
     // Scale the control signal to the PWM range
     float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
