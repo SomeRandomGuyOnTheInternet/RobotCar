@@ -48,6 +48,9 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 // Function to turn
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
+    pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
+    pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
+
     // Motor to turn left
     if (direction == LEFT)
     {
@@ -75,26 +78,15 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         gpio_put(R_MOTOR_ENB, 1);
     }
 
-    if (angle == CONTINUOUS)
-    {
-        pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
-        pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
-    }
-    else
+    if (angle != CONTINUOUS)
     {
         stop_motor();
         reset_encoders();
-
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-
-        pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
-        pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
-
         while (get_average_distance() < target_distance)
         {
             vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
         }
-
         stop_motor();
         reset_encoders();
     }
@@ -165,6 +157,8 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
     float control_signal = Kp * error + Ki * (*integral) + Kd * derivative;
     *prev_error = error;
 
+    printf("Control Signal: %.2f\n", control_signal);
+
     // Scale the control signal to the PWM range
     float pwm_value = (control_signal / MAX_SPEED) * PWM_MAX;
 
@@ -193,20 +187,21 @@ void pid_task(void *params)
             float pwm_right = compute_pid_pwm(target_speed, get_right_speed(), &integral_right, &prev_error_right);
 
             printf("Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pwm_left, pwm_right);
+            printf("Running the motor at 1600 PWM to avoid shorting the board\n");
 
             switch (pid_state)
             {
             case FORWARD:
-                move_motor(pwm_left, pwm_right);
+                move_motor(PWM_MIN, PWM_MIN);
                 break;
             case REVERSE:
-                reverse_motor(pwm_left, pwm_right);
+                reverse_motor(PWM_MIN, PWM_MIN);
                 break;
             case LEFT_TURN:
-                turn_motor(LEFT, CONTINUOUS, pwm_left, pwm_right);
+                turn_motor(LEFT, CONTINUOUS, PWM_MAX, PWM_MAX);
                 break;
             case RIGHT_TURN:
-                turn_motor(RIGHT, CONTINUOUS, pwm_left, pwm_right);
+                turn_motor(RIGHT, CONTINUOUS, PWM_MAX, PWM_MAX);
                 break;
             case STOP:
                 stop_motor();
