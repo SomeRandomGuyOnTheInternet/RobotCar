@@ -85,7 +85,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
     {
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        while (target_distance - get_average_distance() >= 0.05)
+        while (target_distance - get_average_distance() > 0)
         {
             vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
         }

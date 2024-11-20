@@ -80,7 +80,7 @@ void station_1_run()
     printf("[MAIN] Starting test\n");
 
     // GO STRAIGHT UNTIL OBSTACLE
-    float obstacle_distance = 10.0f;
+    float obstacle_distance = 21.0f;
     float target_speed = 35;
     reset_encoders();
     enable_pid_control();
@@ -90,16 +90,16 @@ void station_1_run()
     move_motor_pid(target_speed);
     while (get_obstacle_distance() > obstacle_distance)
     {
-        vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
+        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
     }
     stop_motor_pid(); // Stop after reaching target distance
     printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
 
     // TURN AT TARGET ANGLE
-    float target_angle = 90.0f;
+    float target_angle = 180.0f;
     int turn_direction = LEFT;
     disable_pid_control();
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
     {
         reset_encoders();
         sleep_ms(500);
