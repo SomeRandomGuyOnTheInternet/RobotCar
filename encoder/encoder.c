@@ -62,14 +62,14 @@ float get_distance(Encoder *encoder)
 float get_left_distance()
 {
     float distance = get_distance((Encoder *)&left_encoder);
-    // printf("[DISTANCE] Left distance: %f\n", distance);
+    printf("[DISTANCE] Left distance: %f\n", distance);
     return distance;
 }
 
 float get_right_distance()
 {
     float distance = get_distance((Encoder *)&right_encoder);
-    // printf("[DISTANCE] Right distance: %f\n", distance);
+    printf("[DISTANCE] Right distance: %f\n", distance);
     return distance;
 }
 
@@ -78,7 +78,7 @@ float get_average_distance()
     float left_distance = get_left_distance();
     float right_distance = get_right_distance();
     float average_distance = (left_distance + right_distance) / 2.0f;
-    // printf("[DISTANCE] Average distance: %f\n", average_distance);
+    printf("[DISTANCE] Average distance: %f\n", average_distance);
     return average_distance;
 }
 
@@ -91,8 +91,8 @@ float get_speed(Encoder *encoder)
 
     if (xSemaphoreTake(encoder->mutex, portMAX_DELAY) == pdTRUE)
     {
-        double count_diff = data.pulse_count - last_data.pulse_count;
-        double time_diff = ((int64_t)data.timestamp - (int64_t)last_data.timestamp) / 1000000.0f;
+        float count_diff = data.pulse_count - last_data.pulse_count;
+        float time_diff = ((int64_t)data.timestamp - (int64_t)last_data.timestamp) / 1000000.0f;
 
         if (time_diff > 0)
         {
@@ -107,6 +107,7 @@ float get_speed(Encoder *encoder)
         {
             speed = INVALID_SPEED;
         }
+
         xSemaphoreGive(encoder->mutex);
     }
 
@@ -139,7 +140,7 @@ float get_average_speed()
     float left_speed = get_left_speed();
     float right_speed = get_right_speed();
     float average_speed = (left_speed + right_speed) / 2.0f;
-    if (average_speed > INVALID_SPEED)
+    if (average_speed != INVALID_SPEED)
     {
         printf("[SPEED] Average speed: %f\n", average_speed);
     }

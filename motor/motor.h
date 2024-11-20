@@ -21,12 +21,12 @@
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
 #define R_MOTOR_ENB 22 // GPIO pin for R motor enable
 
-#define PWM_KICKSTART 2100
+#define PWM_JUMPSTART 2100
 #define PWM_MIN_LEFT 2100
 #define PWM_MIN_RIGHT 1700
 #define PWM_MAX 3500
 
-#define MIN_SPEED 30.0f
+#define MIN_SPEED 20.0f
 #define MAX_SPEED 40.0f
 
 #define PI 3.14159265358979323846
