@@ -1,7 +1,7 @@
 #include "motor.h"
 
 // PID parameters
-float Kp = 1.0f;
+float Kp = 5.0f;
 float Ki = 0.00f;
 float Kd = 0.00f;
 

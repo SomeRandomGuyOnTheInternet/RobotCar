@@ -19,7 +19,7 @@
 // Define encoder disk specs
 #define ENCODER_NOTCHES 20.0
 #define WHEEL_CIRCUMFERENCE 20.0
-#define WHEEL_TO_WHEEL_DISTANCE 8.5
+#define WHEEL_TO_WHEEL_DISTANCE 9.0
 #define PULSES_PER_REVOLUTION 20.0  // Number of pulses per wheel revolution
 
 #define INVALID_SPEED -1.0
