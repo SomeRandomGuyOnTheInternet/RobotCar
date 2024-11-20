@@ -1,15 +1,15 @@
 #include "motor.h"
 
 // PID parameters
-static float Kp = 5.0f;
-static float Ki = 0.00f;
-static float Kd = 0.00f;
+float Kp = 5.0f;
+float Ki = 0.00f;
+float Kd = 0.00f;
 
 // PID control variables
-static float integral_left = 0.0;
-static float integral_right = 0.0;
-static float prev_error_left = 0.0;
-static float prev_error_right = 0.0;
+float integral_left = 0.0;
+float integral_right = 0.0;
+float prev_error_left = 0.0;
+float prev_error_right = 0.0;
 
 static float pid_pwm_left = PWM_MIN_LEFT;
 static float pid_pwm_right = PWM_MIN_RIGHT;
@@ -85,7 +85,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
     {
         reset_encoders();
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        while (target_distance - get_average_distance() >= 0.5)
+        while (target_distance - get_average_distance() >= 0.05)
         {
             vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
         }
@@ -168,7 +168,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 // PID Task
 void pid_task(void *params)
 {
-    int jumpstarted_motor = true;
+    bool kickstarted = true;
 
     while (1)
     {
@@ -194,14 +194,14 @@ void pid_task(void *params)
             if (average_speed < 5)
             {
                 printf("[PID] Jumpstarting motors.\n");
-                pid_pwm_left = PWM_JUMPSTART;
-                pid_pwm_right = PWM_JUMPSTART;
-                jumpstarted_motor = true;
+                pid_pwm_left = PWM_KICKSTART;
+                pid_pwm_right = PWM_KICKSTART;
+                kickstarted = true;
             }
             else
             {
                 printf("[PID] Normal motor operation.\n");
-                if (pid_pwm_left < PWM_MIN_LEFT || jumpstarted_motor)
+                if (pid_pwm_left < PWM_MIN_LEFT || kickstarted)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
                 }
@@ -210,7 +210,7 @@ void pid_task(void *params)
                     pid_pwm_left = PWM_MAX;
                 }
 
-                if (pid_pwm_right < PWM_MIN_RIGHT || jumpstarted_motor)
+                if (pid_pwm_right < PWM_MIN_RIGHT || kickstarted)
                 {
                     pid_pwm_right = PWM_MIN_RIGHT;
                 }
@@ -219,7 +219,7 @@ void pid_task(void *params)
                     pid_pwm_right = PWM_MAX;
                 }
 
-                jumpstarted_motor = false;
+                kickstarted = false;
             }
 
             printf("[PID/VALIDATED] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pid_pwm_left, pid_pwm_right);
