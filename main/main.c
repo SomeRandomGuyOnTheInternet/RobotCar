@@ -80,7 +80,7 @@ void station_1_run()
     printf("[MAIN] Starting test\n");
 
     // GO STRAIGHT UNTIL OBSTACLE
-    float obstacle_distance = 21.0f;
+    float obstacle_distance = 25.0f;
     float target_speed = 35;
     reset_encoders();
     enable_pid_control();
@@ -105,7 +105,7 @@ void station_1_run()
         sleep_ms(500);
         printf("==========\n");
         printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-        turn_motor(turn_direction, target_angle, PWM_MAX, PWM_MAX);
+        turn_motor(turn_direction, target_angle, PWM_MIN_LEFT, PWM_MIN_RIGHT);
         printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
         stop_motor();
     }
@@ -180,6 +180,7 @@ int main()
     // Create car movement task
     xTaskCreate(station_1_run, "Robot Movement", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 
+
     // Start FreeRTOS scheduler
     vTaskStartScheduler();
 
@@ -191,13 +192,3 @@ int main()
 
     return 0;
 }
-
-// double start_timestamp = time_us_64() / 1000000.0; // Start time - Converts microseconds to seconds
-// move_car(FORWARD, target_speed, 0.0f);             // Set speed (e.g., 20 cm/s)
-// while (get_average_distance() < target_distance)
-// {
-//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-// }
-// double end_timestamp = time_us_64() / 1000000.0; // End time - Converts microseconds to seconds
-// float average_speed = target_distance / (end_timestamp - start_timestamp);
-// printf("Average speed: %f \n", average_speed);

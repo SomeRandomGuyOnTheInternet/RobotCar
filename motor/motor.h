@@ -21,9 +21,13 @@
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
 #define R_MOTOR_ENB 22 // GPIO pin for R motor enable
 
+#define Kp 0.80f
+#define Ki 0.00f
+#define Kd 0.00f
+
 #define PWM_KICKSTART 2100
 #define PWM_MIN_LEFT 2100
-#define PWM_MIN_RIGHT 1780
+#define PWM_MIN_RIGHT 1750
 #define PWM_MAX 3500
 
 #define MIN_SPEED 30.0f
@@ -63,6 +67,6 @@ void stop_motor_pid();
 float compute_pid_pwm(float target_speed, float current_value, float *integral, float *prev_error);
 void pid_task(void *params);
 
+void motor_conditioning();
+
 #endif // MOTOR_H
-
-

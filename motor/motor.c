@@ -1,10 +1,5 @@
 #include "motor.h"
 
-// PID parameters
-float Kp = 5.0f;
-float Ki = 0.00f;
-float Kd = 0.00f;
-
 // PID control variables
 float integral_left = 0.0;
 float integral_right = 0.0;
@@ -87,7 +82,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
         while (target_distance - get_average_distance() > 0)
         {
-            vTaskDelay(pdMS_TO_TICKS(1)); // Delay to periodically check distance
+            vTaskDelay(pdMS_TO_TICKS(10)); // Delay to periodically check distance
         }
         if (use_pid_control)
         {
@@ -109,6 +104,18 @@ void stop_motor()
     // Disable the enable pins
     gpio_put(L_MOTOR_ENA, 0);
     gpio_put(R_MOTOR_ENB, 0);
+}
+
+void motor_conditioning()
+{
+    printf("[MOTOR] Running motor conditioning.\n");
+    stop_motor();
+    sleep_ms(2000);
+    move_motor(PWM_KICKSTART, PWM_KICKSTART);
+    sleep_ms(15000);
+    reverse_motor(PWM_KICKSTART, PWM_KICKSTART);
+    sleep_ms(15000);
+    stop_motor();
 }
 
 void enable_pid_control()
