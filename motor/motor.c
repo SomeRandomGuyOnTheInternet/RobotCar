@@ -108,14 +108,16 @@ void stop_motor()
 
 void motor_conditioning()
 {
-    printf("[MOTOR] Running motor conditioning.\n");
+    printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
-    sleep_ms(2000);
     move_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
+    printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
     reverse_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
     stop_motor();
+    printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
+    vTaskDelete(NULL); 
 }
 
 void enable_pid_control()

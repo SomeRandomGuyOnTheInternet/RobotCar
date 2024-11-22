@@ -93,20 +93,17 @@ float get_speed(Encoder *encoder)
     {
         double count_diff = data.pulse_count - last_data.pulse_count;
         double time_diff = ((int64_t)data.timestamp - (int64_t)last_data.timestamp) / 1000000.0f;
+        double now_time_diff = (double)(time_us_64() - data.timestamp) / 1000000.0f;
 
-        if (time_diff > 0)
+        if (time_diff > 0.0f && now_time_diff < 1.0f)
         {
-            if (count_diff > 0)
+            if (count_diff > 0.0f)
             {
                 float distance_per_pulse = WHEEL_CIRCUMFERENCE / PULSES_PER_REVOLUTION;
                 speed = (distance_per_pulse * count_diff) / time_diff; // Speed in cm/s
-                // printf("[SPEED] Speed: %f, Count_diff: %f, time: %f\n", speed, count_diff, time_diff);
             }
         }
-        else
-        {
-            speed = INVALID_SPEED;
-        }
+
         xSemaphoreGive(encoder->mutex);
     }
 

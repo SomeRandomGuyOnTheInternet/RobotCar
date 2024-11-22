@@ -87,7 +87,7 @@ void ultrasonic_task(void *params)
             }
             else
             {
-                printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
+                // printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
             }
 
             // Delay to control the measurement rate (e.g., 10 Hz)
