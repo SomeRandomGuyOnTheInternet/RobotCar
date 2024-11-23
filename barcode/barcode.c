@@ -211,7 +211,7 @@ void capture_barcode_signal()
         ++num_bars_scanned;
 
         // Print for debugging
-        printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
+        // printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
 
         // Start decoding when number of bars scanned reaches required code length
         if (num_bars_scanned == CODE_LENGTH)
@@ -237,7 +237,7 @@ void capture_barcode_signal()
                     // Check if the scanned character matches the delimiter character
                     if (scanned_char != DELIMITER_CHAR)
                     {
-                        printf("\nNo starting delimiter character found! Backup car and reset all characters scanned so far..\n");
+                        // printf("\nNo starting delimiter character found! Backup car and reset all characters scanned so far..\n");
                         /* Prepare for next scan */
                         // Reset scan direction
                         is_scan_reversed = false;
@@ -255,7 +255,7 @@ void capture_barcode_signal()
                     // Check if the scanned character matches the delimiter character
                     if (scanned_char != DELIMITER_CHAR)
                     {
-                        printf("\nNo ending delimiter character found! Backup car and reset all characters scanned so far..\n");
+                        // printf("\nNo ending delimiter character found! Backup car and reset all characters scanned so far..\n");
                         /* Prepare for next scan */
                         // Reset scan direction
                         is_scan_reversed = false;
@@ -269,9 +269,9 @@ void capture_barcode_signal()
 
                         char result[50];  // Allocate a buffer for the full message (adjust size as needed)
                         // Print for debugging
-                        printf("\n\nBarcode Output: %c\n", decoded_barcode_char);
+                        // printf("\n\nBarcode Output: %c\n", decoded_barcode_char);
 
-                        sprintf(result, "Decoded character is: %c\n", decoded_barcode_char);
+                        s// printf(result, "Decoded character is: %c\n", decoded_barcode_char);
 
                         send_decoded_data_to_server(result);
 
@@ -291,7 +291,7 @@ void capture_barcode_signal()
             else
             {
                 // Invalid character scanned
-                printf("\nInvalid barcode character scanned! Backup car and reset all characters scanned so far..\n");
+                // printf("\nInvalid barcode character scanned! Backup car and reset all characters scanned so far..\n");
                 /* Prepare for next scan */
                 // Reset scan direction
                 is_scan_reversed = false;
@@ -327,7 +327,7 @@ void reset_button_handler()
     // Check if button has been pressed
     if (!gpio_get(BUTTON_PIN))
     {
-        printf("\nRESET BARCODE!\n\n");
+        // printf("\nRESET BARCODE!\n\n");
         // Reset barcode
         reset_barcode_data();
     }

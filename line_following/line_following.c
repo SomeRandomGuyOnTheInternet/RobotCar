@@ -57,7 +57,7 @@ void line_follow_turn_motor(int direction, uint64_t steer_duration) {
     while ((time_us_64() - start_time) < max_turn_duration) {
         uint16_t sensor_value = adc_read();
         if (sensor_value > LINE_THRESHOLD) {
-            printf("Line detected during turn. Exiting turn early. Sensor value: %d\n", sensor_value);
+            // printf("Line detected during turn. Exiting turn early. Sensor value: %d\n", sensor_value);
             stop_motor();
             return;
         }
@@ -78,19 +78,19 @@ void lineFollowTask(void *pvParameters) {
     int consecutive_reversals = 0;
     int non_reversal_turns = 0;  // Counts turns after max consecutive reversals reached
 
-    printf("Line follow task started. Initial turn direction: %s\n", initial_turn_direction == 0 ? "Left" : "Right");
+    // printf("Line follow task started. Initial turn direction: %s\n", initial_turn_direction == 0 ? "Left" : "Right");
 
     while (true) {
         uint64_t current_time = time_us_64();
         uint16_t sensor_value = adc_read();
 
-        printf("Sensor value: %d\n", sensor_value);
+        // printf("Sensor value: %d\n", sensor_value);
 
         if ((current_time - last_transition_time) > (DEBOUNCE_DELAY_MS * 1000)) {
             last_transition_time = current_time;
 
             if (sensor_value > LINE_THRESHOLD) {
-                printf("Line detected. Moving forward.\n");
+                // printf("Line detected. Moving forward.\n");
                 move_motor(2500, 2500);
 
                 // Reset steering durations, turn directions, and counters on line detection
@@ -104,7 +104,7 @@ void lineFollowTask(void *pvParameters) {
             } else {
                 if (!needs_second_turn) {
                     // First turn
-                    printf("Out of course. Initiating first turn: %s\n", initial_turn_direction == 0 ? "Left" : "Right");
+                    // printf("Out of course. Initiating first turn: %s\n", initial_turn_direction == 0 ? "Left" : "Right");
 
                     if (consecutive_reversals < 3 || non_reversal_turns >= 3) {
                         // Reverse if we haven't reached max reversals, or if we've done 3 turns without reversing
@@ -116,14 +116,14 @@ void lineFollowTask(void *pvParameters) {
                         }
                     } else {
                         // After 3 consecutive reversals, do not reverse, only increase steer duration
-                        printf("Max consecutive reversals reached. Increasing steer duration.\n");
+                        // printf("Max consecutive reversals reached. Increasing steer duration.\n");
                     }
 
                     line_follow_turn_motor(initial_turn_direction, initial_steer_duration);
                     needs_second_turn = true;  // Flag to perform the second turn after this
                 } else {
                     // Second turn
-                    printf("Performing second turn to counter back: %s\n", alternate_turn_direction == 0 ? "Left" : "Right");
+                    // printf("Performing second turn to counter back: %s\n", alternate_turn_direction == 0 ? "Left" : "Right");
 
                     if (consecutive_reversals < 3 || non_reversal_turns >= 3) {
                         stop_motor();
@@ -134,7 +134,7 @@ void lineFollowTask(void *pvParameters) {
                         }
                     } else {
                         // No further reversal; only increase steer duration
-                        printf("Max consecutive reversals reached. Increasing steer duration.\n");
+                        // printf("Max consecutive reversals reached. Increasing steer duration.\n");
                     }
 
                     line_follow_turn_motor(alternate_turn_direction, second_steer_duration);
@@ -155,14 +155,14 @@ void lineFollowTask(void *pvParameters) {
 
 int main() {
     stdio_init_all();
-    printf("Starting robot program...\n");
+    // printf("Starting robot program...\n");
 
     init_line_sensor();
-    printf("Line sensor initialized.\n");
+    // printf("Line sensor initialized.\n");
 
     motor_init();
     motor_pwm_init();
-    printf("Motors initialized.\n");
+    // printf("Motors initialized.\n");
 
     // Seed the random number generator
     srand(time_us_64()); // Seed with microsecond time for better randomness
@@ -170,10 +170,10 @@ int main() {
     // Create line following task
     xTaskCreate(lineFollowTask, "Line Follow Task", 1024, NULL, 1, NULL);
 
-    printf("Starting FreeRTOS scheduler...\n");
+    // printf("Starting FreeRTOS scheduler...\n");
     vTaskStartScheduler();
 
-    printf("Scheduler failed to start!\n");
+    // printf("Scheduler failed to start!\n");
     while (true) {
         // Error handling if scheduler fails
     }

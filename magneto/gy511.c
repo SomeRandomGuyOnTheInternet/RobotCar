@@ -44,7 +44,7 @@ void gy511_read_accel(int16_t *x, int16_t *y, int16_t *z) {
 
 //     // Initialise ultrasonic sensor
 //     gy511_init();
-//     printf("Magnetometer pins initialised\n");
+//     // printf("Magnetometer pins initialised\n");
 //     sleep_ms(500);
 
 //     int16_t accel_x, accel_y, accel_z;
@@ -55,7 +55,7 @@ void gy511_read_accel(int16_t *x, int16_t *y, int16_t *z) {
 
 //         // Read accelerometer data
 //         gy511_read_accel(&accel_x, &accel_y, &accel_z);
-//         printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
+//         // printf("Accel X: %d, Y: %d, Z: %d\n", accel_x, accel_y, accel_z);
 
 //         // Adjust speed based on Y-axis tilt
 //         if (accel_y > 5000) // Forward tilt
@@ -77,7 +77,7 @@ void gy511_read_accel(int16_t *x, int16_t *y, int16_t *z) {
 //             move_motor(-2500, 2500);
 //         }
 
-//         // printf("Distance: %.2lf\n", cm);
+//         // // printf("Distance: %.2lf\n", cm);
 //         sleep_ms(500); // Delay between readings
 //     }
 // }

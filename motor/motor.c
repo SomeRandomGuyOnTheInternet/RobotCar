@@ -86,7 +86,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         }
         if (use_pid_control)
         {
-            printf("[TURN] Turn target distance reached on PID. Stopping.\n");
+            // printf("[TURN] Turn target distance reached on PID. Stopping.\n");
             stop_motor_pid();
         }
     }
@@ -108,15 +108,15 @@ void stop_motor()
 
 void motor_conditioning()
 {
-    printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
+    // printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
     move_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
-    printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
+    // printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
     reverse_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
     stop_motor();
-    printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
+    // printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
     vTaskDelete(NULL); 
 }
 
@@ -160,7 +160,7 @@ void offset_current_motor(int direction, float offset)
     }
 
     move_motor(pwm_left, pwm_right);
-    printf("[MOTOR/OFFSET] Offset current motor PWM Left: %d, Right: %d\n", pwm_left, pwm_right);
+    // printf("[MOTOR/OFFSET] Offset current motor PWM Left: %d, Right: %d\n", pwm_left, pwm_right);
 }
 
 void forward_motor_pid(float new_target_speed)
@@ -168,7 +168,7 @@ void forward_motor_pid(float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = FORWARD;
-    printf("[PID] PID Forward.\n");
+    // printf("[PID] PID Forward.\n");
 }
 
 void reverse_motor_pid(float new_target_speed)
@@ -176,7 +176,7 @@ void reverse_motor_pid(float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = REVERSE;
-    printf("[PID] PID reverse.\n");
+    // printf("[PID] PID reverse.\n");
 }
 
 void turn_motor_pid(int direction, float new_target_speed)
@@ -184,15 +184,17 @@ void turn_motor_pid(int direction, float new_target_speed)
     enable_pid_control();
     target_speed = new_target_speed;
     pid_state = (direction == LEFT) ? LEFT_TURN : RIGHT_TURN;
-    printf("[PID] PID %s turn.\n", (direction == LEFT) ? "left" : "right");
+    // printf("[PID] PID %s turn.\n", (direction == LEFT) ? "left" : "right");
 }
 
 void stop_motor_pid()
 {
-    enable_pid_control();
+    disable_pid_control();
+    stop_motor();
     target_speed = 0.0f;
     pid_state = STOP;
-    printf("[PID] PID stop.\n");
+    enable_pid_control();
+    // printf("[PID] PID stop.\n");
 }
 
 // PID Computation
@@ -220,29 +222,29 @@ void pid_task(void *params)
             {
                 pid_state = STOP;
             }
-            // if (target_speed > MAX_SPEED)
-            // {
-            //     target_speed = MAX_SPEED;
-            // }
+            if (target_speed > MAX_SPEED)
+            {
+                target_speed = MAX_SPEED;
+            }
 
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();
             float average_speed = get_average_speed();
-            printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
+            // printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
 
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
 
             if (average_speed < 5)
             {
-                printf("[PID] Jumpstarting motors.\n");
+                // printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_KICKSTART;
                 pid_pwm_right = PWM_KICKSTART;
                 kickstarted = true;
             }
             else
             {
-                printf("[PID] Normal motor operation.\n");
+                // printf("[PID] Normal motor operation.\n");
                 if (pid_pwm_left < PWM_MIN_LEFT || kickstarted)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
@@ -264,7 +266,7 @@ void pid_task(void *params)
                 kickstarted = false;
             }
 
-            printf("[PID/VALIDATED] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pid_pwm_left, pid_pwm_right);
+            // printf("[PID/VALIDATED] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pid_pwm_left, pid_pwm_right);
 
             switch (pid_state)
             {
