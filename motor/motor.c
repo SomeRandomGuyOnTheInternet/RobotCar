@@ -218,7 +218,7 @@ void pid_task(void *params)
 
     while (1)
     {
-        printf("[PID] PID Task Running.\n");
+        // printf("[PID] PID Task Running.\n");
         if (use_pid_control)
         {
             if (target_speed < MIN_SPEED)
