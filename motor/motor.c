@@ -130,7 +130,40 @@ void disable_pid_control()
     use_pid_control = false;
 }
 
-void move_motor_pid(float new_target_speed)
+void offset_current_motor(int direction, float offset)
+{
+    disable_pid_control();
+    
+    if (offset < 0.0f)
+    {
+        offset = 0.0f;
+    }
+    else if (offset > 1.0f)
+    {
+        offset = 1.0f;
+    }
+
+    int pwm_left = PWM_MID_LEFT;
+    int pwm_right = PWM_MID_RIGHT;
+    int pwm_left_offset_range = (PWM_MAX_LEFT - PWM_MIN_LEFT) / 2;
+    int pwm_right_offset_range = (PWM_MAX_RIGHT - PWM_MIN_RIGHT) / 2;
+
+    if (direction == LEFT)
+    {
+        pwm_left -= pwm_left_offset_range * offset;
+        pwm_right += pwm_right_offset_range * offset;
+    }
+    else
+    {
+        pwm_left += pwm_left_offset_range * offset;
+        pwm_right -= pwm_right_offset_range * offset;
+    }
+
+    move_motor(pwm_left, pwm_right);
+    printf("[MOTOR/OFFSET] Offset current motor PWM Left: %d, Right: %d\n", pwm_left, pwm_right);
+}
+
+void forward_motor_pid(float new_target_speed)
 {
     enable_pid_control();
     target_speed = new_target_speed;
@@ -187,10 +220,10 @@ void pid_task(void *params)
             {
                 pid_state = STOP;
             }
-            if (target_speed > MAX_SPEED)
-            {
-                target_speed = MAX_SPEED;
-            }
+            // if (target_speed > MAX_SPEED)
+            // {
+            //     target_speed = MAX_SPEED;
+            // }
 
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();

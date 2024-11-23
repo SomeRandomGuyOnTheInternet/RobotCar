@@ -155,15 +155,32 @@ void station_1_run()
 
     printf("[MAIN] Starting test\n");
 
+    // // OFFSET MOTOR UNTIL OBSTCLE
+    // float obstacle_distance = 25.0f;
+    // int turn_direction = RIGHT;
+    // float offset = 0.5;
+    // reset_encoders();
+    // disable_pid_control();
+    // printf("==========\n");
+    // printf("[MAIN] Offset motor %s until obstacle at %f cm.\n", (turn_direction == LEFT) ? "left" : "right", obstacle_distance);
+    // sleep_ms(500);
+    // offset_current_motor(turn_direction, offset);
+    // while (get_obstacle_distance() > obstacle_distance)
+    // {
+    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+    // }
+    // stop_motor(); // Stop after reaching target distance
+    // printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
+
     // GO STRAIGHT UNTIL OBSTACLE
     float obstacle_distance = 25.0f;
-    float target_speed = 40;
+    float target_speed = 30;
     reset_encoders();
     enable_pid_control();
     sleep_ms(500);
     printf("==========\n");
     printf("[MAIN] Started ultrasonic obstacle detection.\n");
-    move_motor_pid(target_speed);
+    forward_motor_pid(target_speed);
     while (get_obstacle_distance() > obstacle_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
@@ -178,7 +195,7 @@ void station_1_run()
     for (int i = 0; i < 1; i++)
     {
         reset_encoders();
-        sleep_ms(500);
+        sleep_ms(1000);
         printf("==========\n");
         printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
         turn_motor(turn_direction, target_angle, PWM_TURN, PWM_TURN);
@@ -188,13 +205,13 @@ void station_1_run()
 
     // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
     target_speed = 35.0f;
-    float target_distance = 20.0f;
+    float target_distance = 100.0f;
     reset_encoders();
     enable_pid_control();
     printf("==========\n");
     printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
     sleep_ms(500);
-    move_motor_pid(target_speed);
+    forward_motor_pid(target_speed);
     while (get_average_distance() < target_distance)
     {
         vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
@@ -212,7 +229,7 @@ void station_1_run()
     // {
     //     sleep_ms(100);
     //     printf("[MAIN] Moving %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
-    //     move_motor_pid(target_speed);
+    //     forward_motor_pid(target_speed);
 
     //     target_speed = (target_speed < MAX_SPEED) ? target_speed * 1.01f : MAX_SPEED;
     // }
@@ -226,7 +243,7 @@ void station_1_run()
     // sleep_ms(500);
     // printf("==========\n");
     // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-    // move_motor_pid(target_speed);
+    // forward_motor_pid(target_speed);
     // while (get_average_distance() < target_distance)
     // {
     //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance

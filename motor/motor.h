@@ -26,13 +26,20 @@
 #define Kd 0.00f
 
 #define PWM_KICKSTART 2100
+#define PWM_MIN 2100
 #define PWM_MIN_LEFT 2100
 #define PWM_MIN_RIGHT 1800
+#define PWM_MID 2800
+#define PWM_MID_LEFT 2800
+#define PWM_MID_RIGHT 2700
 #define PWM_MAX 3500
+#define PWM_MAX_LEFT 3500
+#define PWM_MAX_RIGHT 3400
 #define PWM_TURN 2600
 
 #define MIN_SPEED 30.0f
 #define MAX_SPEED 40.0f
+#define TURN_SPEED 35.0f
 
 #define PI 3.14159265358979323846
 #define FULL_CIRCLE 360.0f
@@ -57,11 +64,12 @@ void move_motor(float new_pwm_left, float new_pwm_right);
 void reverse_motor(float new_pwm_left, float new_pwm_right);
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right);
 void stop_motor();
+void offset_current_motor(int direction, float offset);
 
 // PID control functions
 void enable_pid_control();
 void disable_pid_control();
-void move_motor_pid(float new_target_speed);
+void forward_motor_pid(float new_target_speed);
 void reverse_motor_pid(float new_target_speed);
 void turn_motor_pid(int direction, float new_target_speed);
 void stop_motor_pid();
