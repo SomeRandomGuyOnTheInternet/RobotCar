@@ -281,8 +281,13 @@ int start_server() {
         return 1;
     } else {
         printf("Connected to Wi-Fi successfully.\n");
-        // ip4_addr_t ip = netif->ip_addr; 
-        // printf("Client IP address: %s\n", ip4addr_ntoa(&ip));
+    }
+    struct netif *netif = netif_default; // Get the default network interface 
+    if (netif != NULL) { 
+        ip4_addr_t ip = netif->ip_addr; 
+        printf("Client IP address: %s\n", ip4addr_ntoa(&ip)); 
+    } else { 
+        printf("Network interface not found.\n"); 
     }
 
     // Create FreeRTOS tasks
