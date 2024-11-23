@@ -17,6 +17,7 @@
 #include "encoder.h"
 #include "motor.h"
 #include "ultrasonic.h"
+#include "gy511.h"
 #include "tcp_server.h"
 #include "barcode.h"
 
@@ -95,6 +96,17 @@ void init_drivers()
     // Initialise ultrasonic sensor
     ultrasonic_init();
     // printf("[MAIN/START] Ultrasonic pins initialised\n");
+    sleep_ms(500);
+
+    // Initialise magnetometer
+    gy511_init();
+    // printf("[MAIN/START] Magnetometer pins initialised\n");
+    sleep_ms(500);
+
+    start_barcode();
+    sleep_ms(500);
+
+    start_server();
     sleep_ms(500);
 }
 
@@ -325,17 +337,6 @@ int main()
     // Init all required
     init_drivers();
     init_buttons();
-
-    if (start_server() != 0)
-    {
-        printf("Server startup failed\n");
-        return -1;
-    }
-    if (start_barcode() != 0)
-    {
-        printf("Barcode startup failed\n");
-        return -1;
-    }
 
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
