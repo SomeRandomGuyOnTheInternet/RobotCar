@@ -281,6 +281,8 @@ int start_server() {
         return 1;
     } else {
         printf("Connected to Wi-Fi successfully.\n");
+        // ip4_addr_t ip = netif->ip_addr; 
+        // printf("Client IP address: %s\n", ip4addr_ntoa(&ip));
     }
 
     // Create FreeRTOS tasks

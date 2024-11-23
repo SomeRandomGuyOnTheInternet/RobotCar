@@ -7,6 +7,9 @@
 #include <math.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
+#include "lwip/tcp.h" // For TCP server and client
+#include "lwip/ip_addr.h"
+#include "lwip/netif.h"
 #include "hardware/adc.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -14,7 +17,8 @@
 #include "encoder.h"
 #include "motor.h"
 #include "ultrasonic.h"
-#include "gy511.h"
+#include "tcp_server.h"
+#include "barcode.h"
 
 #define MAIN_BTN_PIN 20
 #define CONDITION_MOTOR_BTN_PIN 21
@@ -91,11 +95,6 @@ void init_drivers()
     // Initialise ultrasonic sensor
     ultrasonic_init();
     // printf("[MAIN/START] Ultrasonic pins initialised\n");
-    sleep_ms(500);
-
-    // Initialise magnetometer
-    gy511_init();
-    // printf("[MAIN/START] Magnetometer pins initialised\n");
     sleep_ms(500);
 }
 
@@ -326,6 +325,17 @@ int main()
     // Init all required
     init_drivers();
     init_buttons();
+
+    if (start_server() != 0)
+    {
+        printf("Server startup failed\n");
+        return -1;
+    }
+    if (start_barcode() != 0)
+    {
+        printf("Barcode startup failed\n");
+        return -1;
+    }
 
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
