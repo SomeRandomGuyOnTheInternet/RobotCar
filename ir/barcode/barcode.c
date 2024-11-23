@@ -70,8 +70,6 @@ int compare_bar_timings(const void *a, const void *b)
     BarTiming *barB = (BarTiming *)b;
     return (barB->timing > barA->timing) - (barB->timing < barA->timing); // Sort in descending order
 }
-
-// Function to parse scanned bars
 // Function to parse scanned bars
 char decode_scanned_bars()
 {
@@ -187,7 +185,6 @@ char decode_scanned_bars()
             }
         }
     }
-
     // Return decoded character to caller
     return decoded_char;
 }
@@ -205,26 +202,21 @@ void capture_barcode_signal()
     {
         // Store time difference between state change in array
         timing_for_bars[num_bars_scanned] = time_us_64() - last_transition_time;
-
         // Update number of bars scanned
         ++num_bars_scanned;
-
         // Print for debugging
-        printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
-
+        //printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
         // Start decoding when number of bars scanned reaches required code length
         if (num_bars_scanned == CODE_LENGTH)
         {
             // Update number of characters scanned
             ++num_chars_scanned;
-
-
+            //for debugging
+            //printf("number of chars %d",num_chars_scanned);
             // Parse scanned bars
             char scanned_char = decode_scanned_bars();
-
             // Check validity of scanned character
             bool is_valid_char = (scanned_char != INVALID_CHAR) ? true : false;
-
             // Check if scanned character is valid
             if (is_valid_char)
             {
@@ -264,18 +256,13 @@ void capture_barcode_signal()
                     }
                     else
                     {
-
-
                         char result[50];  // Allocate a buffer for the full message (adjust size as needed)
                         // Print for debugging
                         printf("\n\nBarcode Output: %c\n", decoded_barcode_char);
-
                         sprintf(result, "Decoded character is: %c\n", decoded_barcode_char);
-
                         send_decoded_data_to_server(result);
 
                         // TODO: Transmit scanned code..
-
                         /* Prepare for next scan */
                         // Reset scan direction
                         is_scan_reversed = false;
@@ -298,16 +285,13 @@ void capture_barcode_signal()
                 num_chars_scanned = 0;
                 // TODO: Backup car..
             }
-
             // Reset barcode after reading a character
             reset_barcode_data();
         }
     }
-
     // Update last state change time after all computations are completed
     last_transition_time = time_us_64();
 }
-
 
 
 
@@ -316,10 +300,8 @@ void gpio_isr_handler(uint gpio, uint32_t events) {
     if ((time_us_64() - last_transition_time) > DEBOUNCE_DELAY_US && gpio == IR_SENSOR_PIN && is_scanning_allowed) {
         // Only trigger scanning if it's a fresh transition
         is_scanning_active = true;
-        //printf("ISR triggered: Transition detected on GPIO %d\n", gpio);
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
         xSemaphoreGiveFromISR(barcode_semaphore, &xHigherPriorityTaskWoken);  // Signal the scanning task
-        //last_transition_time = time_us_64();  // Update the timestamp of the last transition
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);  // Yield the task to let it process the barcode
     }
 }
@@ -335,22 +317,6 @@ void barcode_scanning_task(void *pvParameters) {
         }
     }
 }
-
-
-
-// Task for sending barcode data to server
-void tcp_sending_task(void *params) {
-    while (1) {
-        if (decoded_barcode_char != INVALID_CHAR) {
-            char result[50];
-            sprintf(result, "Decoded character is: %c\n", decoded_barcode_char);
-            send_decoded_data_to_server(result);
-            decoded_barcode_char = INVALID_CHAR; // Reset after sending
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000)); // 1-second interval for sending data
-    }
-}
-
 // Task to monitor the reset button
 void reset_button_task(void *params) {
     while (1) {
@@ -383,15 +349,8 @@ int start_barcode() {
 
     // Create FreeRTOS tasks
     xTaskCreate(barcode_scanning_task, "Barcode Scanning Task", 1024, NULL, 1, NULL);
-    xTaskCreate(tcp_sending_task, "TCP Sending Task", 1024, NULL, 1, NULL);
     xTaskCreate(reset_button_task, "ResetButtonTask", 1024, NULL, 1, NULL);
     gpio_set_irq_enabled_with_callback(IR_SENSOR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_isr_handler);
-    //gpio_set_irq_enabled_with_callback(RESET_BUTTON_PIN, GPIO_IRQ_EDGE_FALL, true, &reset_button_handler);
-
-    // Start FreeRTOS scheduler
-    //vTaskStartScheduler();
-
-
 
     return 0;
 }
