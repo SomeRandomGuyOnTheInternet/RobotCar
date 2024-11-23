@@ -17,11 +17,10 @@
 #include "encoder.h"
 #include "motor.h"
 #include "ultrasonic.h"
-#include "gy511.h"
 #include "tcp_server.h"
 #include "barcode.h"
 
-#define MAIN_BTN_PIN 20
+#define MAIN_BTN_PIN 22
 #define CONDITION_MOTOR_BTN_PIN 21
 #define LED_PIN 28
 
@@ -98,15 +97,12 @@ void init_drivers()
     // printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
-    // Initialise magnetometer
-    gy511_init();
-    // printf("[MAIN/START] Magnetometer pins initialised\n");
-    sleep_ms(500);
-
     start_barcode();
+    // printf("[MAIN/START] Barcode pins initialised\n");
     sleep_ms(500);
 
     start_server();
+    // printf("[MAIN/START] TCP server initialised\n");
     sleep_ms(500);
 }
 

@@ -16,7 +16,7 @@
 #define WIFI_PASSWORD "nelsonczh"
 
 #define TCP_PORT 5000
-#define CLIENT_SERVER_IP "172.20.10.3" // Replace with actual IP
+#define CLIENT_SERVER_IP "172.20.10.6" // Replace with actual IP
 #define CLIENT_SERVER_PORT 5001
 #define DEBUG_printf printf
 #define BUF_SIZE 2048
