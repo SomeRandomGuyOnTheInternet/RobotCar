@@ -1,3 +1,16 @@
+# Enable the PICO SDK
+include(../pico_sdk_import.cmake)
+
+#include FreeRTOS
+include(../FreeRTOS_Kernel_import.cmake)
+
+# Initialize the SDK
+pico_sdk_init()
+
+add_compile_definitions(CYW43_LWIP=1
+    PICO_MAX_SHARED_IRQ_HANDLERS=8
+)
+
 add_executable(main
         main.c
         ../wifi/tcp_server/picow_tcp_server.c  # Correct path to your TCP client source file
