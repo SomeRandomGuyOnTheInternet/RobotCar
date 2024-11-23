@@ -87,7 +87,7 @@ void ultrasonic_task(void *params)
             }
             else
             {
-                // // printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
+                // printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
             }
 
             // Delay to control the measurement rate (e.g., 10 Hz)
@@ -121,7 +121,7 @@ void ultrasonic_init()
     // Create a FreeRTOS task for ultrasonic sensor
     xTaskCreate(ultrasonic_task, "Ultrasonic Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, NULL);
 
-    // // printf("[ULTRASONIC] Ultrasonic sensor waiting for first signal.\n");
+    // printf("[ULTRASONIC] Ultrasonic sensor waiting for first signal.\n");
     // while (get_obstacle_distance() == INVALID_DISTANCE) // Wait for the first reading
     // {
     //     vTaskDelay(pdMS_TO_TICKS(100)); // 100ms delay
