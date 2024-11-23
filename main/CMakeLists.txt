@@ -40,9 +40,6 @@ target_link_libraries(main
     pico_cyw43_arch_lwip_threadsafe_background
     pico_stdlib
     hardware_adc
-    ultrasonic_lib
-    motor_lib
-    encoder_lib
     FreeRTOS-Kernel-Heap4 # FreeRTOS kernel and dynamic heap
 )
 
