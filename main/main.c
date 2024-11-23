@@ -99,14 +99,6 @@ void init_drivers()
     ultrasonic_init();
     printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
-
-    // start_barcode();
-    // printf("[MAIN/START] Barcode pins initialised\n");
-    // sleep_ms(500);
-
-    // start_server();
-    // printf("[MAIN/START] TCP server initialised\n");
-    // sleep_ms(500);
 }
 
 void init_buttons()
@@ -179,6 +171,7 @@ void set_fixed_values(int x, int y)
     if (x == NEUTRAL && y == NEUTRAL)
     {
         stop_motor();
+
     }
 
     printf("Moving straight\n");
@@ -229,10 +222,10 @@ void condition_motor()
 {
     printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
-    move_motor(PWM_MAX, PWM_MAX);
+    move_motor(PWM_MIN, PWM_MIN);
     sleep_ms(15000);
     printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
-    reverse_motor(PWM_MAX, PWM_MAX);
+    reverse_motor(PWM_MIN, PWM_MIN);
     sleep_ms(15000);
     stop_motor();
     printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
@@ -327,20 +320,21 @@ int main()
     // Init all required
     init_drivers();
     init_buttons();
-    // init_interrupts();
+    init_interrupts();
 
     // start_barcode();
     // printf("[MAIN/START] Barcode pins initialised\n");
     // sleep_ms(500);
 
+    disable_pid_control();
     start_server();
     printf("[MAIN/START] TCP server initialised\n");
     sleep_ms(500);
 
     // xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
-    // // Start FreeRTOS scheduler
-    // vTaskStartScheduler();
+    // Start FreeRTOS scheduler
+    vTaskStartScheduler();
 
     // This point will not be reached because the scheduler is running
     while (1)

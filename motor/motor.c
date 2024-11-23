@@ -26,6 +26,10 @@ void move_motor(float new_pwm_left, float new_pwm_right)
     gpio_put(L_MOTOR_IN2, 1);
     gpio_put(R_MOTOR_IN3, 0);
     gpio_put(R_MOTOR_IN4, 1);
+
+    // Enable the enable pins
+    gpio_put(L_MOTOR_ENA, 1);
+    gpio_put(R_MOTOR_ENB, 1);
 }
 
 // Function to move backward
