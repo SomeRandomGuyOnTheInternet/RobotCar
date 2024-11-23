@@ -15,7 +15,7 @@
 // Define motor pins
 #define L_MOTOR_IN1 0 // GPIO pin for L motor input 1
 #define L_MOTOR_IN2 1 // GPIO pin for L motor input 2
-#define L_MOTOR_ENA 2 // GPIO pin for L motor enable
+#define L_MOTOR_ENA 3 // GPIO pin for L motor enable
 
 #define R_MOTOR_IN3 26 // GPIO pin for R motor input 1
 #define R_MOTOR_IN4 27 // GPIO pin for R motor input 2
