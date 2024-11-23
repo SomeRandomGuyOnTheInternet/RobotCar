@@ -24,8 +24,11 @@
 
 #define INVALID_SPEED -1.0
 
-#define LEFT 0
+#define NEUTRAL 0
+#define FORWARDS 1
+#define BACKWARDS -1
 #define RIGHT 1
+#define LEFT -1
 
 typedef struct {
     uint32_t pulse_count;

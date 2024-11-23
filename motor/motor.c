@@ -16,6 +16,8 @@ static PIDState pid_state = DISABLED;
 // Function to move motors forward
 void move_motor(float new_pwm_left, float new_pwm_right)
 {
+    printf("[MOTOR] Moving motors forward with PWM Left: %f, Right: %f\n", new_pwm_left, new_pwm_right);
+    
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
     pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
 
