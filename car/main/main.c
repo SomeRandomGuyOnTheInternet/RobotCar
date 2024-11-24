@@ -190,7 +190,7 @@ void process_magneto_data(int x, int y)
     printf("Target Speed: %f\n", rcvd_target_speed);
 }
 
-void get_tcp_magneto_data()
+int get_tcp_magneto_data()
 {
     const char *data = get_tcp_last_rcvd();
 
@@ -205,6 +205,7 @@ void get_tcp_magneto_data()
         {
             printf("[TCP/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
             process_magneto_data(x, y);
+            return 1;
         }
         else
         {
@@ -215,6 +216,8 @@ void get_tcp_magneto_data()
     {
         printf("[TCP/MAGNETO] No data received yet.\n");
     }
+
+    return 0;
 }
 
 void test()
@@ -235,12 +238,12 @@ void test()
         if (rcvd_direction == FORWARDS)
         {
             printf("Moving forwards\n");
-            move_motor(PWM_MAX, PWM_KICKSTART);
+            move_motor(PWM_MAX, PWM_JUMPSTART);
         }
         else if (rcvd_direction == BACKWARDS)
         {
             printf("Moving backwards\n");
-            reverse_motor(PWM_MAX, PWM_KICKSTART);
+            reverse_motor(PWM_MAX, PWM_JUMPSTART);
         }
         vTaskDelay(pdMS_TO_TICKS(50));
     }

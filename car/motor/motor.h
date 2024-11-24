@@ -25,7 +25,7 @@
 #define Ki 0.00f
 #define Kd 0.00f
 
-#define PWM_KICKSTART 2100
+#define PWM_JUMPSTART 2100
 #define PWM_MIN 2100
 #define PWM_MIN_LEFT 2100
 #define PWM_MIN_RIGHT 1725

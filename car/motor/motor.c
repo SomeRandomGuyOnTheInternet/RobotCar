@@ -116,10 +116,10 @@ void motor_conditioning()
 {
     printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
-    move_motor(PWM_KICKSTART, PWM_KICKSTART);
+    move_motor(PWM_JUMPSTART, PWM_JUMPSTART);
     sleep_ms(15000);
     printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
-    reverse_motor(PWM_KICKSTART, PWM_KICKSTART);
+    reverse_motor(PWM_JUMPSTART, PWM_JUMPSTART);
     sleep_ms(15000);
     stop_motor();
     printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
@@ -218,7 +218,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 // PID Task
 void pid_task(void *params)
 {
-    bool kickstarted = true;
+    bool jumpstarted = true;
 
     while (1)
     {
@@ -245,14 +245,14 @@ void pid_task(void *params)
             if (average_speed < 5)
             {
                 printf("[PID] Jumpstarting motors.\n");
-                pid_pwm_left = PWM_KICKSTART;
-                pid_pwm_right = PWM_KICKSTART;
-                kickstarted = true;
+                pid_pwm_left = PWM_JUMPSTART;
+                pid_pwm_right = PWM_JUMPSTART;
+                jumpstarted = true;
             }
             else
             {
                 printf("[PID] Normal motor operation.\n");
-                if (pid_pwm_left < PWM_MIN_LEFT || kickstarted)
+                if (pid_pwm_left < PWM_MIN_LEFT || jumpstarted)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
                 }
@@ -261,7 +261,7 @@ void pid_task(void *params)
                     pid_pwm_left = PWM_MAX;
                 }
 
-                if (pid_pwm_right < PWM_MIN_RIGHT || kickstarted)
+                if (pid_pwm_right < PWM_MIN_RIGHT || jumpstarted)
                 {
                     pid_pwm_right = PWM_MIN_RIGHT;
                 }
@@ -270,7 +270,7 @@ void pid_task(void *params)
                     pid_pwm_right = PWM_MAX;
                 }
 
-                kickstarted = false;
+                jumpstarted = false;
             }
 
             printf("[PID/VALIDATED] Computed Left PID PWM: %.2f, Right PID PWM: %.2f\n", pid_pwm_left, pid_pwm_right);

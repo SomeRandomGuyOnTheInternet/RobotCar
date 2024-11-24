@@ -9,7 +9,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-
 #include "barcode.h"
 
 #define WIFI_SSID "Nelson"
@@ -164,7 +163,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
         TCP_printf("Message received:\n%s", last_recvd_data);
 
-        // Send data to server
+        // // Send data to server
         // send_gy511_data_to_server(state->buffer_recv);
         state->recv_len = 0;
         memset(state->buffer_recv, 0, BUF_SIZE);
