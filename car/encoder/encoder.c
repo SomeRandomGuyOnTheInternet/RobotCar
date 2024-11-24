@@ -62,14 +62,14 @@ float get_distance(Encoder *encoder)
 float get_left_distance()
 {
     float distance = get_distance((Encoder *)&left_encoder);
-    printf("[DISTANCE] Left distance: %f\n", distance);
+    // printf("[DISTANCE] Left distance: %f\n", distance);
     return distance;
 }
 
 float get_right_distance()
 {
     float distance = get_distance((Encoder *)&right_encoder);
-    printf("[DISTANCE] Right distance: %f\n", distance);
+    // printf("[DISTANCE] Right distance: %f\n", distance);
     return distance;
 }
 
@@ -78,7 +78,7 @@ float get_average_distance()
     float left_distance = get_left_distance();
     float right_distance = get_right_distance();
     float average_distance = (left_distance + right_distance) / 2.0f;
-    printf("[DISTANCE] Average distance: %f\n", average_distance);
+    // printf("[DISTANCE] Average distance: %f\n", average_distance);
     return average_distance;
 }
 
@@ -116,7 +116,7 @@ float get_left_speed()
     float speed = get_speed((Encoder *)&left_encoder);
     if (speed != INVALID_SPEED)
     {
-        printf("[SPEED] Left speed: %f\n", speed);
+        // printf("[SPEED] Left speed: %f\n", speed);
     }
     return speed;
 }
@@ -126,7 +126,7 @@ float get_right_speed()
     float speed = get_speed((Encoder *)&right_encoder);
     if (speed != INVALID_SPEED)
     {
-        printf("[SPEED] Right speed: %f\n", speed);
+        // printf("[SPEED] Right speed: %f\n", speed);
     }
     return speed;
 }
@@ -138,7 +138,7 @@ float get_average_speed()
     float average_speed = (left_speed + right_speed) / 2.0f;
     if (average_speed > INVALID_SPEED)
     {
-        printf("[SPEED] Average speed: %f\n", average_speed);
+        // printf("[SPEED] Average speed: %f\n", average_speed);
     }
     return average_speed;
 }
