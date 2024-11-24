@@ -14,10 +14,8 @@ static bool use_pid_control = false;
 static PIDState pid_state = DISABLED;
 
 // Function to move motors forward
-void move_motor(float new_pwm_left, float new_pwm_right)
+void forward_motor(float new_pwm_left, float new_pwm_right)
 {
-    printf("[MOTOR] Moving motors forward with PWM Left: %f, Right: %f\n", new_pwm_left, new_pwm_right);
-    
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
     pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
 
@@ -116,7 +114,7 @@ void motor_conditioning()
 {
     printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
-    move_motor(PWM_JUMPSTART, PWM_JUMPSTART);
+    forward_motor(PWM_JUMPSTART, PWM_JUMPSTART);
     sleep_ms(15000);
     printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
     reverse_motor(PWM_JUMPSTART, PWM_JUMPSTART);
@@ -125,20 +123,41 @@ void motor_conditioning()
     printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
 }
 
-void enable_pid_control()
-{
-    use_pid_control = true;
-}
-
 void disable_pid_control()
 {
     use_pid_control = false;
 }
 
-void offset_current_motor(int direction, float offset)
+void forward_motor_manual(float new_pwm_left, float new_pwm_right)
 {
     disable_pid_control();
-    
+    forward_motor(new_pwm_left, new_pwm_right);
+    printf("[MOTOR/MANUAL] Moving forward with PWM Left: %f, Right: %f\n", new_pwm_left, new_pwm_right);
+}
+
+void reverse_motor_manual(float new_pwm_left, float new_pwm_right)
+{
+    disable_pid_control();
+    reverse_motor(new_pwm_left, new_pwm_right);
+    printf("[MOTOR/MANUAL] Reversing with PWM Left: %f, Right: %f\n", new_pwm_left, new_pwm_right);
+}
+
+void turn_motor_manual(int direction, float angle, float new_pwm_left, float new_pwm_right)
+{
+    disable_pid_control();
+    turn_motor(direction, angle, new_pwm_left, new_pwm_right);
+    printf("[MOTOR/MANUAL] Turning %s with PWM Left: %f, Right: %f\n", (direction == LEFT) ? "left" : "right", new_pwm_left, new_pwm_right);
+}
+
+void stop_motor_manual()
+{
+    disable_pid_control();
+    stop_motor();
+    printf("[MOTOR/MANUAL] Stopping motor.\n");
+}
+
+void offset_move_motor(int direction, int turn, float offset)
+{
     if (offset < 0.0f)
     {
         offset = 0.0f;
@@ -153,19 +172,32 @@ void offset_current_motor(int direction, float offset)
     int pwm_left_offset_range = (PWM_MAX_LEFT - PWM_MIN_LEFT) / 2;
     int pwm_right_offset_range = (PWM_MAX_RIGHT - PWM_MIN_RIGHT) / 2;
 
-    if (direction == LEFT)
+    if (turn == LEFT)
     {
         pwm_left -= pwm_left_offset_range * offset;
         pwm_right += pwm_right_offset_range * offset;
     }
-    else
+    else if (turn == RIGHT)
     {
         pwm_left += pwm_left_offset_range * offset;
         pwm_right -= pwm_right_offset_range * offset;
     }
 
-    move_motor(pwm_left, pwm_right);
-    printf("[MOTOR/OFFSET] Offset current motor PWM Left: %d, Right: %d\n", pwm_left, pwm_right);
+    if (direction == FORWARDS)
+    {
+        forward_motor_manual(pwm_left, pwm_right);
+    }
+    else if (direction == BACKWARDS)
+    {
+        reverse_motor_manual(pwm_left, pwm_right);
+    }
+
+    printf("[MOTOR/OFFSET] Offset motor with turn %s, direction %s, offset %f.\n", (turn == LEFT) ? "left" : "right", (direction == FORWARDS) ? "forwards" : "backwards", offset);
+}
+
+void enable_pid_control()
+{
+    use_pid_control = true;
 }
 
 void forward_motor_pid(float new_target_speed)
@@ -276,7 +308,7 @@ void pid_task(void *params)
             switch (pid_state)
             {
             case FORWARD:
-                move_motor(pid_pwm_left, pid_pwm_right);
+                forward_motor(pid_pwm_left, pid_pwm_right);
                 break;
             case REVERSE:
                 reverse_motor(pid_pwm_left, pid_pwm_right);

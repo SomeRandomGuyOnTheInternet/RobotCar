@@ -60,15 +60,21 @@ void motor_init();
 void motor_pwm_init();
 
 // Movement functions
-void move_motor(float new_pwm_left, float new_pwm_right);
+void forward_motor(float new_pwm_left, float new_pwm_right);
 void reverse_motor(float new_pwm_left, float new_pwm_right);
 void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right);
 void stop_motor();
-void offset_current_motor(int direction, float offset);
+
+// Manual functions
+void disable_pid_control();
+void forward_motor_manual(float new_pwm_left, float new_pwm_right);
+void reverse_motor_manual(float new_pwm_left, float new_pwm_right);
+void turn_motor_manual(int direction, float angle, float new_pwm_left, float new_pwm_right);
+void stop_motor_manual();
+void offset_move_motor(int direction, int turn, float offset);
 
 // PID control functions
 void enable_pid_control();
-void disable_pid_control();
 void forward_motor_pid(float new_target_speed);
 void reverse_motor_pid(float new_target_speed);
 void turn_motor_pid(int direction, float new_target_speed);

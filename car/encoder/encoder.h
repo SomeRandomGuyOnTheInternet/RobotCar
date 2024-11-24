@@ -27,8 +27,8 @@
 #define NEUTRAL 0
 #define FORWARDS 1
 #define BACKWARDS -1
-#define RIGHT 1
-#define LEFT -1
+#define RIGHT 2
+#define LEFT 3
 
 typedef struct {
     uint32_t pulse_count;

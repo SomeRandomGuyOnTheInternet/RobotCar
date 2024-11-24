@@ -76,7 +76,7 @@ int start_line_following() {
             last_transition_time = current_time;
 
             if (sensor_value > LINE_THRESHOLD) {
-                move_motor(2500, 2500);
+                forward_motor(2500, 2500);
                 printf("Line detected. Sensor value: %d\n", sensor_value);
             } else {
                 printf("Out of course. Initiating slow turn. Sensor value: %d\n", sensor_value);

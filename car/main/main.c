@@ -32,9 +32,12 @@ int current_task = 0;
 TaskHandle_t current_task_handle = NULL;
 QueueHandle_t button_queue;
 
+#define MAGNETO_MAX_SLICES 3
+
 int rcvd_direction = NEUTRAL;
 int rcvd_turn_direction = NEUTRAL;
 float rcvd_target_speed = 0.00f;
+float rcvd_direction_offset = 0.00f;
 
 void driver_callbacks(uint gpio, uint32_t events)
 {
@@ -148,37 +151,44 @@ void motor_conditioning_task()
 
 void process_magneto_data(int x, int y)
 {
-    if (y > 0)
+    if (y > 0 && y <= MAGNETO_MAX_SLICES)
     {
         rcvd_direction = FORWARDS;
+        rcvd_target_speed = MIN_SPEED + ((MAX_SPEED - MIN_SPEED) * (y / MAGNETO_MAX_SLICES));
     }
-    else if (y < 0)
+    else if (y < 0 && y >= -MAGNETO_MAX_SLICES)
     {
         rcvd_direction = BACKWARDS;
+        rcvd_target_speed = MIN_SPEED + ((MAX_SPEED - MIN_SPEED) * (abs(y) / MAGNETO_MAX_SLICES));
     }
     else
     {
         rcvd_direction = NEUTRAL;
+        rcvd_target_speed = 0.0f;
     }
 
-    if (x > 0)
+    if (x > 0 && x <= MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = RIGHT;
+        rcvd_direction_offset = 1.0f * (x / MAGNETO_MAX_SLICES);
     }
-    else if (x < 0)
+    else if (x < 0 && x >= -MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = LEFT;
+        rcvd_direction_offset = 1.0f * (x / MAGNETO_MAX_SLICES);
     }
     else
     {
         rcvd_turn_direction = NEUTRAL;
+        rcvd_direction_offset = 0.0f;
     }
 
-    printf("Direction: %s\n", (rcvd_direction == FORWARDS) ? "FORWARDS" : (rcvd_direction == BACKWARDS) ? "BACKWARDS"
-                                                                                                        : "NEUTRAL");
-    printf("Turn direction: %s\n", (rcvd_turn_direction == RIGHT) ? "RIGHT" : (rcvd_turn_direction == LEFT) ? "LEFT"
-                                                                                                            : "NEUTRAL");
-    printf("Target Speed: %f\n", rcvd_target_speed);
+    printf("[MAIN/MAGNETO] Direction: %s\n", (rcvd_direction == FORWARDS) ? "FORWARDS" : (rcvd_direction == BACKWARDS) ? "BACKWARDS"
+                                                                                                                       : "NEUTRAL");
+    printf("[MAIN/MAGNETO] Turn direction: %s\n", (rcvd_turn_direction == RIGHT) ? "RIGHT" : (rcvd_turn_direction == LEFT) ? "LEFT"
+                                                                                                                           : "NEUTRAL");
+    printf("[MAIN/MAGNETO] Target Speed: %f\n", rcvd_target_speed);
+    printf("[MAIN/MAGNETO] Direction Offset: %f\n", rcvd_direction_offset);
 }
 
 int get_tcp_magneto_data()
@@ -188,24 +198,24 @@ int get_tcp_magneto_data()
     // Check if the data is non-empty
     if (data != NULL && data[0] != '\0')
     {
-        printf("[TCP/MAGNETO] Processed Data: %s\n", data);
+        printf("[MAIN/MAGNETO] Processed Data: %s\n", data);
 
         // Example: Parse the string
         int x = 0, y = 0;
         if (sscanf(data, "X: %*d, Y: %*d, Z: %*d, Fixed_X: %d, Fixed_Y: %d", &x, &y) == 2)
         {
-            printf("[TCP/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
+            printf("[MAIN/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
             process_magneto_data(x, y);
             return 1;
         }
         else
         {
-            printf("[TCP/MAGNETO] Failed to parse values from the data.\n");
+            printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
         }
     }
     else
     {
-        printf("[TCP/MAGNETO] No data received yet.\n");
+        printf("[MAIN/MAGNETO] No data received yet.\n");
     }
 
     return 0;
@@ -218,24 +228,50 @@ void main_task()
 
     printf("[MAIN] Starting test\n");
 
+    disable_pid_control();
+
     while (1)
     {
         get_tcp_magneto_data();
+
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            stop_motor();
+            printf("[MAIN/MAGNETO] Stopping\n");
+            stop_motor_manual();
         }
-
-        printf("Moving straight\n");
-        if (rcvd_direction == FORWARDS)
+        else if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            printf("Moving forwards\n");
-            move_motor(PWM_MAX, PWM_JUMPSTART);
+            printf("[MAIN/MAGNETO] Moving straight\n");
+            if (rcvd_direction == FORWARDS)
+            {
+                printf("[MAIN/MAGNETO] Moving forwards\n");
+                forward_motor_manual(PWM_MAX, PWM_JUMPSTART);
+                // forward_motor_pid(rcvd_target_speed);
+            }
+            else if (rcvd_direction == BACKWARDS)
+            {
+                printf("[MAIN/MAGNETO] Moving backwards\n");
+                reverse_motor_manual(PWM_MAX, PWM_JUMPSTART);
+                // reverse_motor_pid(rcvd_target_speed);
+            }
         }
-        else if (rcvd_direction == BACKWARDS)
+        else if (rcvd_direction == NEUTRAL && rcvd_turn_direction != NEUTRAL)
         {
-            printf("Moving backwards\n");
-            reverse_motor(PWM_MAX, PWM_JUMPSTART);
+            if (rcvd_turn_direction == RIGHT)
+            {
+                printf("[MAIN/MAGNETO] Moving right\n");
+                turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
+            }
+            else if (rcvd_turn_direction == LEFT)
+            {
+                printf("[MAIN/MAGNETO] Moving left\n");
+                turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
+            }
+        }
+        else
+        {
+            printf("[MAIN/MAGNETO] Moving straight and turning\n");
+            offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
         }
         vTaskDelay(pdMS_TO_TICKS(50));
     }
@@ -360,7 +396,7 @@ int main()
 //     {
 //         printf("Moving forwards\n");
 //         disable_pid_control();
-//         move_motor(PWM_MAX_LEFT, PWM_MAX_RIGHT);
+//         forward_motor(PWM_MAX_LEFT, PWM_MAX_RIGHT);
 //     }
 //     else if (rcvd_direction == BACKWARDS)
 //     {
