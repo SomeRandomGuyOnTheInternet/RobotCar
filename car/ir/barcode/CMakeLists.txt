@@ -5,9 +5,7 @@ set(target barcode_driver)
 add_executable(${target} barcode.c)
 
 # Include directories for TCP server
-include_directories(../../wifi/tcp_server)  # Include tcp_server directory
-
-# Link libraries (common dependencies)
+include_directories(../../wifi/tcp_server) # Include tcp_server directory
 target_link_libraries(${target} pico_stdlib)
 
 # Enable USB output
@@ -21,9 +19,9 @@ add_library(barcode_lib
         barcode.h
         ../../wifi/tcp_server/picow_tcp_server.c
         ../../wifi/tcp_server/tcp_server.h
-        )
-    
+)
+
 # pull in common dependencies
 target_link_libraries(barcode_lib
-    pico_stdlib 
-    )
+        pico_stdlib
+)
