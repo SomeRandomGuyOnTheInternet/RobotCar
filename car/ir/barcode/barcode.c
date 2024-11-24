@@ -137,6 +137,7 @@ char decode_scanned_bars()
 
     // Rest of the code to match the decoded character...
     bool is_match_found = false;
+    (void) is_match_found;
 
     // Check if parsing for delimit character
     if (num_chars_scanned == 1 || num_chars_scanned == 3)

@@ -1,6 +1,6 @@
 add_executable(car_main
         main.c
-        ../wifi/tcp_server/picow_tcp_server.c  # Correct path to your TCP client source file
+        ../wifi/tcp_server/picow_tcp_server.c # Correct path to your TCP client source file
         ../ir/barcode/barcode.c
 )
 
@@ -16,7 +16,7 @@ target_include_directories(car_main PRIVATE
 )
 
 target_compile_definitions(car_main PRIVATE
-        PICO_MAX_SHARED_IRQ_HANDLERS=5
+        PICO_MAX_SHARED_IRQ_HANDLERS=8
 )
 
 # pull in common dependencies
@@ -33,10 +33,6 @@ target_link_libraries(car_main
         motor_lib
         encoder_lib
         ultrasonic_lib
-)
-
-add_compile_definitions(CYW43_LWIP=1
-    PICO_MAX_SHARED_IRQ_HANDLERS=8
 )
 
 # link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)

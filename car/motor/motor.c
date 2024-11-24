@@ -123,7 +123,6 @@ void motor_conditioning()
     sleep_ms(15000);
     stop_motor();
     printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
-    vTaskDelete(NULL); 
 }
 
 void enable_pid_control()
@@ -218,7 +217,7 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 // PID Task
 void pid_task(void *params)
 {
-    bool jumpstarted = true;
+    bool jumpstarted = false;
 
     while (1)
     {
@@ -244,14 +243,14 @@ void pid_task(void *params)
 
             if (average_speed < 5)
             {
-                printf("[PID] Jumpstarting motors.\n");
+                // printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_JUMPSTART;
                 pid_pwm_right = PWM_JUMPSTART;
                 jumpstarted = true;
             }
             else
             {
-                printf("[PID] Normal motor operation.\n");
+                // printf("[PID] Normal motor operation.\n");
                 if (pid_pwm_left < PWM_MIN_LEFT || jumpstarted)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
@@ -269,7 +268,6 @@ void pid_task(void *params)
                 {
                     pid_pwm_right = PWM_MAX;
                 }
-
                 jumpstarted = false;
             }
 

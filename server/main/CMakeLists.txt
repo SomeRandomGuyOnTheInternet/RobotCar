@@ -1,7 +1,3 @@
-add_compile_definitions(CYW43_LWIP=1
-    PICO_MAX_SHARED_IRQ_HANDLERS=8
-)
-
 add_executable(server_main
         main.c
 )
@@ -18,6 +14,10 @@ target_compile_definitions(server_main PRIVATE
 # pull in common dependencies
 target_link_libraries(server_main
         pico_stdlib
+)
+
+add_compile_definitions(CYW43_LWIP=1
+    PICO_MAX_SHARED_IRQ_HANDLERS=8
 )
 
 # link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)

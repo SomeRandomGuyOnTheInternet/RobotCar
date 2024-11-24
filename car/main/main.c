@@ -138,18 +138,9 @@ void init_interrupts()
     printf("[MAIN/START] Interrupts initialised\n");
 }
 
-void condition_motor()
+void motor_conditioning_task()
 {
-    printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
-    stop_motor();
-    move_motor(PWM_MIN, PWM_MIN);
-    sleep_ms(15000);
-    printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
-    reverse_motor(PWM_MIN, PWM_MIN);
-    sleep_ms(15000);
-    stop_motor();
-    printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
-
+    motor_conditioning();
     current_task = NO_TASK; // Reset global state
     current_task_handle = NULL;
     vTaskDelete(NULL); // Delete the current task
@@ -220,9 +211,10 @@ int get_tcp_magneto_data()
     return 0;
 }
 
-void test()
+void main_task()
 {
     init_interrupts();
+    init_server();
 
     printf("[MAIN] Starting test\n");
 
@@ -269,6 +261,16 @@ void test()
     vTaskDelete(NULL); // Delete the current task
 }
 
+void reset_tasks()
+{
+    disable_pid_control();
+    stop_motor();
+    vTaskDelete(current_task_handle);
+    current_task_handle = NULL;
+    current_task = NO_TASK;
+    printf("[MAIN/TASK] Previous task stopped.\n");
+}
+
 void task_manager()
 {
     int selected_task;
@@ -284,10 +286,7 @@ void task_manager()
                 // Stop the currently running task
                 if (current_task_handle != NULL)
                 {
-                    vTaskDelete(current_task_handle);
-                    current_task_handle = NULL;
-                    current_task = NO_TASK;
-                    printf("[MAIN/TASK] Task for button %d stopped.\n", selected_task);
+                    reset_tasks();
                 }
             }
             else
@@ -295,20 +294,17 @@ void task_manager()
                 // Stop the currently running task
                 if (current_task_handle != NULL)
                 {
-                    vTaskDelete(current_task_handle);
-                    current_task_handle = NULL;
-                    current_task = NO_TASK;
-                    printf("[MAIN/TASK] Previous task stopped.\n");
+                    reset_tasks();
                 }
 
                 // Start the new task
                 if (selected_task == MAIN_TASK)
                 {
-                    xTaskCreate(test, "Main Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
+                    xTaskCreate(main_task, "Main Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
                 else if (selected_task == CONDITION_MOTOR_TASK)
                 {
-                    xTaskCreate(condition_motor, "Motor Conditioning", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
+                    xTaskCreate(motor_conditioning_task, "Motor Conditioning", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
 
                 current_task = selected_task;
@@ -327,8 +323,7 @@ int main()
     // Init all required
     init_drivers();
     init_buttons();
-    init_interrupts();
-    init_server();
+    // init_interrupts();
 
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
