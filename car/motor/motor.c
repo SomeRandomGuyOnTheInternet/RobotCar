@@ -183,6 +183,7 @@ void offset_move_motor(int direction, int turn, float offset)
         pwm_right -= pwm_right_offset_range * offset;
     }
 
+    printf("[MOTOR/OFFSET] Offset motor with turn %s, direction %s, offset %f.\n", (turn == LEFT) ? "left" : "right", (direction == FORWARDS) ? "forwards" : "backwards", offset);
     if (direction == FORWARDS)
     {
         forward_motor_manual(pwm_left, pwm_right);
@@ -191,8 +192,6 @@ void offset_move_motor(int direction, int turn, float offset)
     {
         reverse_motor_manual(pwm_left, pwm_right);
     }
-
-    printf("[MOTOR/OFFSET] Offset motor with turn %s, direction %s, offset %f.\n", (turn == LEFT) ? "left" : "right", (direction == FORWARDS) ? "forwards" : "backwards", offset);
 }
 
 void enable_pid_control()
