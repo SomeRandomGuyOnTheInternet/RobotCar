@@ -331,7 +331,7 @@ void reset_button_task(void *params) {
 }
 
 
-int start_barcode() {
+int barcode_init() {
 
     printf("\nbarcode started\n");
     stdio_init_all();

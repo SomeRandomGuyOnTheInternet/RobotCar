@@ -33,7 +33,7 @@ void run_tcp_server_test(void);                   // Run the TCP server test
 void send_decoded_data_to_server(const char *data); // Send decoded barcode data to server
 void send_gy511_data_to_server(const char *data);  // Send sensor data to server
 
-
-int start_server(void);  // Start the server (the main function entry)
+int init_server(void);  // Start the server (the main function entry)
+const char *get_tcp_last_rcvd();
 
 #endif // TCP_SERVER_H
