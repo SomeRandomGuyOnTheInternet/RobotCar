@@ -13,8 +13,8 @@
 #define INVALID_CHAR '#'                  // Error character
 
 // Sensors
-#define RESET_BUTTON_PIN 20                     // Maker kit button pin
-#define IR_SENSOR_PIN 15                  // IR sensor pin
+#define RESET_BUTTON_PIN 22                     // Maker kit button pin
+#define IR_SENSOR_PIN 4                  // IR sensor pin
 #define DEBOUNCE_DELAY_US 5000            // Debounce delay in microseconds (us)
 
 /* Function Prototypes */

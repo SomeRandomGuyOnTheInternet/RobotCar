@@ -10,8 +10,6 @@
 #include "barcode.h"
 #include "tcp_server.h"
 
-#define RESET_BUTTON_PIN 20
-
 // Global variables
 volatile bool is_scanning_allowed = false;
 volatile bool is_scanning_active = false;

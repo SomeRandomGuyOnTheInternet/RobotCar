@@ -245,27 +245,27 @@ void main_task()
             if (rcvd_direction == FORWARDS)
             {
                 printf("[MAIN/MAGNETO] Moving forwards\n");
-                forward_motor_manual(PWM_MAX, PWM_JUMPSTART);
+                forward_motor_manual(PWM_MAX, PWM_MAX);
                 // forward_motor_pid(rcvd_target_speed);
             }
             else if (rcvd_direction == BACKWARDS)
             {
                 printf("[MAIN/MAGNETO] Moving backwards\n");
-                reverse_motor_manual(PWM_MAX, PWM_JUMPSTART);
+                reverse_motor_manual(PWM_MAX, PWM_MAX);
                 // reverse_motor_pid(rcvd_target_speed);
             }
         }
         else if (rcvd_direction == NEUTRAL && rcvd_turn_direction != NEUTRAL)
         {
-            if (rcvd_turn_direction == RIGHT)
-            {
-                printf("[MAIN/MAGNETO] Moving right\n");
-                turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
-            }
-            else if (rcvd_turn_direction == LEFT)
+            if (rcvd_turn_direction == LEFT)
             {
                 printf("[MAIN/MAGNETO] Moving left\n");
                 turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
+            }
+            else if (rcvd_turn_direction == RIGHT)
+            {
+                printf("[MAIN/MAGNETO] Moving right\n");
+                turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
             }
         }
         else
@@ -273,6 +273,7 @@ void main_task()
             printf("[MAIN/MAGNETO] Moving straight and turning\n");
             offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
         }
+        
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
@@ -299,8 +300,7 @@ void main_task()
 
 void reset_tasks()
 {
-    disable_pid_control();
-    stop_motor();
+    stop_motor_manual();
     vTaskDelete(current_task_handle);
     current_task_handle = NULL;
     current_task = NO_TASK;
