@@ -7,9 +7,6 @@ add_executable(${target} barcode.c)
 # Include directories for TCP server
 include_directories(../../wifi/tcp_server)  # Include tcp_server directory
 
-#Include barcode
-include(../../FreeRTOS_Kernel_import.cmake)
-
 # Link libraries (common dependencies)
 target_link_libraries(${target} pico_stdlib)
 

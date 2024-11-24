@@ -1,14 +1,10 @@
-add_compile_definitions(CYW43_LWIP=1
-    PICO_MAX_SHARED_IRQ_HANDLERS=8
-)
-
-add_executable(main
+add_executable(car_main
         main.c
         ../wifi/tcp_server/picow_tcp_server.c  # Correct path to your TCP client source file
         ../ir/barcode/barcode.c
 )
 
-target_include_directories(main PRIVATE
+target_include_directories(car_main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/..
         ${CMAKE_CURRENT_LIST_DIR}/../motor
@@ -19,12 +15,12 @@ target_include_directories(main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/../ir/barcode
 )
 
-target_compile_definitions(main PRIVATE
+target_compile_definitions(car_main PRIVATE
         PICO_MAX_SHARED_IRQ_HANDLERS=5
 )
 
 # pull in common dependencies
-target_link_libraries(main
+target_link_libraries(car_main
         pico_stdlib
         pico_cyw43_arch_none
         pico_cyw43_arch_lwip_threadsafe_background
@@ -39,11 +35,15 @@ target_link_libraries(main
         ultrasonic_lib
 )
 
+add_compile_definitions(CYW43_LWIP=1
+    PICO_MAX_SHARED_IRQ_HANDLERS=8
+)
+
 # link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)
 
 # create map/bin/hex file etc.
-pico_add_extra_outputs(main)
+pico_add_extra_outputs(car_main)
 
 # enable usb output, disable uart output
-pico_enable_stdio_usb(main 1)
-pico_enable_stdio_uart(main 1)
+pico_enable_stdio_usb(car_main 1)
+pico_enable_stdio_uart(car_main 1)

@@ -101,9 +101,6 @@ char decode_scanned_bars()
     // Initialize the decoded character
     char decoded_char = INVALID_CHAR;
 
-    // Rest of the code to match the decoded character...
-    bool is_match_found = false;
-
     /*
         NOTE: Each character in Barcode 39 is encoded using 5 black bars, 4 white bars, and 3 wide bars. To represent each of the
         44 unique characters, a binary representation is used, whereby 1 indicates a wide bar, and 0 indicates a narrow bar.
@@ -132,6 +129,9 @@ char decode_scanned_bars()
                                             "100000011", "100000110", "000000111", "100010010", "000010011", "000010110",
                                             "101000010", "001000011", "000101010", "010001010", "010100010", "010101000",
                                             "001000110"};
+
+    // Rest of the code to match the decoded character...
+    bool is_match_found = false;
 
     // Check if parsing for delimit character
     if (num_chars_scanned == 1 || num_chars_scanned == 3)
