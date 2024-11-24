@@ -10,7 +10,7 @@
 #include "barcode.h"
 #include "tcp_server.h"
 
-#define RESET_BUTTON_PIN 20  
+#define RESET_BUTTON_PIN 20
 
 // Global variables
 volatile bool is_scanning_allowed = false;
@@ -25,12 +25,13 @@ char scanned_binary_code[CODE_LENGTH + 1] = "";
 char decoded_barcode_char = INVALID_CHAR;
 
 // Flag to check the button press
-volatile bool reset_button_pressed  = false;
+volatile bool reset_button_pressed = false;
 
 // Semaphore handle
 SemaphoreHandle_t barcode_semaphore;
 
-typedef struct {
+typedef struct
+{
     uint16_t index;
     uint64_t timing;
 } BarTiming;
@@ -40,24 +41,28 @@ extern TCP_SERVER_T state;
 extern void send_decoded_data_to_server(const char *data);
 
 // Initialize barcode pin
-void initialize_barcode_pin() {
+void initialize_barcode_pin()
+{
     gpio_init(IR_SENSOR_PIN);
     gpio_set_dir(IR_SENSOR_PIN, GPIO_IN);
     gpio_set_pulls(IR_SENSOR_PIN, true, false);
 }
 
 // Function to initialize the reset button
-void init_reset_button() {
+void init_reset_button()
+{
     gpio_init(RESET_BUTTON_PIN);
     gpio_set_dir(RESET_BUTTON_PIN, GPIO_IN);
     gpio_pull_up(RESET_BUTTON_PIN);
 }
 
 // Reset barcode data
-void reset_barcode_data() {
+void reset_barcode_data()
+{
     num_bars_scanned = 0;
     strcpy(scanned_binary_code, "");
-    for (uint16_t i = 0; i < CODE_LENGTH; i++) {
+    for (uint16_t i = 0; i < CODE_LENGTH; i++)
+    {
         timing_for_bars[i] = 0;
     }
     has_scan_started = false;
@@ -205,15 +210,15 @@ void capture_barcode_signal()
         // Update number of bars scanned
         ++num_bars_scanned;
         // Print for debugging
-        //printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
+        // printf("\n\nTime difference [%d]: %lld", num_bars_scanned, timing_for_bars[num_bars_scanned - 1]);
         // Start decoding when number of bars scanned reaches required code length
         if (num_bars_scanned == CODE_LENGTH)
         {
             // Update number of characters scanned
             ++num_chars_scanned;
-            //for debugging
-            //printf("number of chars %d",num_chars_scanned);
-            // Parse scanned bars
+            // for debugging
+            // printf("number of chars %d",num_chars_scanned);
+            //  Parse scanned bars
             char scanned_char = decode_scanned_bars();
             // Check validity of scanned character
             bool is_valid_char = (scanned_char != INVALID_CHAR) ? true : false;
@@ -256,7 +261,7 @@ void capture_barcode_signal()
                     }
                     else
                     {
-                        char result[50];  // Allocate a buffer for the full message (adjust size as needed)
+                        char result[50]; // Allocate a buffer for the full message (adjust size as needed)
                         // Print for debugging
                         printf("\n\nBarcode Output: %c\n", decoded_barcode_char);
                         sprintf(result, "Decoded character is: %c\n", decoded_barcode_char);
@@ -293,58 +298,62 @@ void capture_barcode_signal()
     last_transition_time = time_us_64();
 }
 
-
-
-void gpio_isr_handler(uint gpio, uint32_t events) {
+void gpio_isr_handler(uint gpio, uint32_t events)
+{
     // Ensure that we only process valid transitions
-    if ((time_us_64() - last_transition_time) > DEBOUNCE_DELAY_US && gpio == IR_SENSOR_PIN && is_scanning_allowed) {
+    if ((time_us_64() - last_transition_time) > DEBOUNCE_DELAY_US && gpio == IR_SENSOR_PIN && is_scanning_allowed)
+    {
         // Only trigger scanning if it's a fresh transition
         is_scanning_active = true;
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xSemaphoreGiveFromISR(barcode_semaphore, &xHigherPriorityTaskWoken);  // Signal the scanning task
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);  // Yield the task to let it process the barcode
+        xSemaphoreGiveFromISR(barcode_semaphore, &xHigherPriorityTaskWoken); // Signal the scanning task
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);                        // Yield the task to let it process the barcode
     }
 }
 
-
-void barcode_scanning_task(void *pvParameters) {
-    while (1) {
-        if (xSemaphoreTake(barcode_semaphore, portMAX_DELAY)) {  // Wait for semaphore
-            if (is_scanning_active) {
-                capture_barcode_signal();  // Process the captured signal
+void barcode_scanning_task(void *pvParameters)
+{
+    while (1)
+    {
+        if (xSemaphoreTake(barcode_semaphore, portMAX_DELAY))
+        { // Wait for semaphore
+            if (is_scanning_active)
+            {
+                capture_barcode_signal();   // Process the captured signal
                 is_scanning_active = false; // Reset after processing the signal
             }
         }
     }
 }
 // Task to monitor the reset button
-void reset_button_task(void *params) {
-    while (1) {
+void reset_button_task(void *params)
+{
+    while (1)
+    {
         // Check if the button is pressed (active low)
-        if (gpio_get(RESET_BUTTON_PIN) == 0) {
+        if (gpio_get(RESET_BUTTON_PIN) == 0)
+        {
             printf("Reset button pressed! Resetting barcode data...\n");
-            reset_barcode_data();  // Your existing function to reset the data
-            vTaskDelay(pdMS_TO_TICKS(500));  // Debounce delay
+            reset_barcode_data();           // Your existing function to reset the data
+            vTaskDelay(pdMS_TO_TICKS(500)); // Debounce delay
         }
-        vTaskDelay(pdMS_TO_TICKS(100));  // Polling interval
+        vTaskDelay(pdMS_TO_TICKS(100)); // Polling interval
     }
 }
 
-
-int barcode_init() {
-
-    printf("\nbarcode started\n");
-    stdio_init_all();
+int barcode_init()
+{
     initialize_barcode_pin();
-    //initialize_reset_button();
+    // initialize_reset_button();
 
     // Create a binary semaphore
     barcode_semaphore = xSemaphoreCreateBinary();
 
-    if (barcode_semaphore == NULL) {
+    if (barcode_semaphore == NULL)
+    {
         printf("Failed to create barcode semaphore!\n");
     }
-    
+
     is_scanning_allowed = true;
 
     // Create FreeRTOS tasks
