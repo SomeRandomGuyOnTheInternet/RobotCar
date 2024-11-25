@@ -15,6 +15,7 @@
 #define ECHOPIN 6
 
 #define INVALID_DISTANCE -1.0
+#define OBSTACLE_DISTANCE 21.0f
 
 // Kalman filter state structure
 typedef struct kalman_state_ {

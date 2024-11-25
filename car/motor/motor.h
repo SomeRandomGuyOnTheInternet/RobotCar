@@ -27,7 +27,7 @@
 
 #define PWM_MIN 2100
 #define PWM_MIN_LEFT 2100
-#define PWM_MIN_RIGHT 1725
+#define PWM_MIN_RIGHT 2200
 #define PWM_MID 2800
 #define PWM_MID_LEFT 2800
 #define PWM_MID_RIGHT 2700
@@ -35,7 +35,7 @@
 #define PWM_MAX_LEFT 3500
 #define PWM_MAX_RIGHT 3400
 #define PWM_JUMPSTART 2100
-#define PWM_TURN 2600
+#define PWM_TURN 2100
 
 #define MIN_SPEED 30.0f
 #define MAX_SPEED 40.0f

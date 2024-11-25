@@ -90,17 +90,17 @@ void init_drivers()
 {
     // Initialise encoder sensor
     encoder_init();
-    printf("[MAIN/START] Encoder pins initialised\n");
+    // printf("[MAIN/START] Encoder pins initialised\n");
     sleep_ms(500);
 
     // Initialise motor pins and PWM
     motor_init();
-    printf("[MAIN/START] Motor pins and PWM initialised\n");
+    // printf("[MAIN/START] Motor pins and PWM initialised\n");
     sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
-    printf("[MAIN/START] Ultrasonic pins initialised\n");
+    // printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
     // barcode_init();
@@ -124,12 +124,12 @@ void init_buttons()
     button_queue = xQueueCreate(10, sizeof(int));
     if (button_queue == NULL)
     {
-        printf("[MAIN/START] Failed to create button queue!\n");
+        // printf("[MAIN/START] Failed to create button queue!\n");
         while (1)
             ; // Halt if queue creation fails
     }
 
-    printf("[MAIN/START] Task buttons initialised\n");
+    // printf("[MAIN/START] Task buttons initialised\n");
 }
 
 void init_interrupts()
@@ -138,7 +138,7 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
-    printf("[MAIN/START] Interrupts initialised\n");
+    // printf("[MAIN/START] Interrupts initialised\n");
 }
 
 void motor_conditioning_task()
@@ -183,42 +183,40 @@ void process_magneto_data(int x, int y)
         rcvd_direction_offset = 0.0f;
     }
 
-    printf("[MAIN/MAGNETO] Direction: %s\n", (rcvd_direction == FORWARDS) ? "FORWARDS" : (rcvd_direction == BACKWARDS) ? "BACKWARDS"
-                                                                                                                       : "NEUTRAL");
-    printf("[MAIN/MAGNETO] Turn direction: %s\n", (rcvd_turn_direction == RIGHT) ? "RIGHT" : (rcvd_turn_direction == LEFT) ? "LEFT"
-                                                                                                                           : "NEUTRAL");
-    printf("[MAIN/MAGNETO] Target Speed: %f\n", rcvd_target_speed);
-    printf("[MAIN/MAGNETO] Direction Offset: %f\n", rcvd_direction_offset);
+    // printf("[MAIN/MAGNETO] Direction: %s\n", (rcvd_direction == FORWARDS) ? "FORWARDS" : (rcvd_direction == BACKWARDS) ? "BACKWARDS" : "NEUTRAL");
+    // printf("[MAIN/MAGNETO] Turn direction: %s\n", (rcvd_turn_direction == RIGHT) ? "RIGHT" : (rcvd_turn_direction == LEFT) ? "LEFT" : "NEUTRAL");
+    // printf("[MAIN/MAGNETO] Target Speed: %f\n", rcvd_target_speed);
+    // printf("[MAIN/MAGNETO] Direction Offset: %f\n", rcvd_direction_offset);
 }
 
 int get_tcp_magneto_data()
 {
     const char *data = get_tcp_last_rcvd();
 
-    printf("[MAIN/MAGNETO] Received Data: %s\n", data);
+    // printf("[MAIN/MAGNETO] Received Data: %s\n", data);
 
     // Check if the data is non-empty
     if (data != NULL && data[0] != '\0')
     {
-        printf("[MAIN/MAGNETO] Processed Data: %s\n", data);
+        // printf("[MAIN/MAGNETO] Processed Data: %s\n", data);
 
         // Example: Parse the string
         int x = 0, y = 0;
         if (sscanf(data, "X: %*d, Y: %*d, Z: %*d, Fixed_X: %d, Fixed_Y: %d", &x, &y) == 2)
         {
-            printf("[MAIN/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
+            // printf("[MAIN/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
             free((void *)data);
             process_magneto_data(x, y);
             return 1;
         }
         else
         {
-            printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
+            // printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
         }
     }
     else
     {
-        printf("[MAIN/MAGNETO] No data received yet.\n");
+        // printf("[MAIN/MAGNETO] No data received yet.\n");
     }
 
     free((void *)data);
@@ -231,9 +229,9 @@ void main_task()
     init_interrupts();
     init_server();
 
-    printf("[MAIN] Starting test\n");
+    // printf("[MAIN] Starting test\n");
 
-    disable_pid_control();
+    stop_motor_manual();
 
     while (1)
     {
@@ -241,22 +239,20 @@ void main_task()
 
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            printf("[MAIN] Stopping\n");
-            stop_motor_manual();
+            // printf("[MAIN] Stopping\n");
+            stop_motor_pid();
         }
         else if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            printf("[MAIN] Moving straight\n");
+            // printf("[MAIN] Moving straight\n");
             if (rcvd_direction == FORWARDS)
             {
-                printf("[MAIN] Moving forwards\n");
-                // forward_motor_manual(PWM_MAX, PWM_MAX);
+                // printf("[MAIN] Moving forwards\n");
                 forward_motor_pid(rcvd_target_speed);
             }
             else if (rcvd_direction == BACKWARDS)
             {
-                printf("[MAIN] Moving backwards\n");
-                // reverse_motor_manual(PWM_MAX, PWM_MAX);
+                // printf("[MAIN] Moving backwards\n");
                 reverse_motor_pid(rcvd_target_speed);
             }
         }
@@ -264,39 +260,33 @@ void main_task()
         {
             if (rcvd_turn_direction == LEFT)
             {
-                printf("[MAIN] Moving left\n");
+                // printf("[MAIN] Moving left\n");
                 turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
             }
             else if (rcvd_turn_direction == RIGHT)
             {
-                printf("[MAIN] Moving right\n");
+                // printf("[MAIN] Moving right\n");
                 turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
             }
         }
         else
         {
-            printf("[MAIN] Moving straight and turning\n");
+            // printf("[MAIN] Moving straight and turning\n");
             offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
+        }
+
+        if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
+        {
+            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+            stop_motor_manual();
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            // printf("[MAIN] Resuming movement.\n");
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    // // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-    // float target_speed = 35.0f;
-    // float target_distance = 100.0f;
-    // reset_encoders();
-    // enable_pid_control();
-    // printf("==========\n");
-    // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-    // sleep_ms(500);
-    // forward_motor_pid(target_speed);
-    // while (get_average_distance() < target_distance)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    // }
-    // stop_motor_pid(); // Stop after reaching target distance
-    // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
+    stop_motor_manual(); // Stop after reaching target distance
 
     current_task = NO_TASK; // Reset global state
     current_task_handle = NULL;
@@ -309,7 +299,7 @@ void reset_tasks()
     vTaskDelete(current_task_handle);
     current_task_handle = NULL;
     current_task = NO_TASK;
-    printf("[MAIN/TASK] Previous task stopped.\n");
+    // printf("[MAIN/TASK] Previous task stopped.\n");
 }
 
 void task_manager()
@@ -349,7 +339,7 @@ void task_manager()
                 }
 
                 current_task = selected_task;
-                printf("[MAIN/TASK] Task for button %d started.\n", current_task);
+                // printf("[MAIN/TASK] Task for button %d started.\n", current_task);
             }
         }
     }
@@ -364,7 +354,6 @@ int main()
     // Init all required
     init_drivers();
     init_buttons();
-    // init_interrupts();
 
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
@@ -379,142 +368,3 @@ int main()
 
     return 0;
 }
-
-// if (rcvd_turn_direction == RIGHT)
-// {
-//     printf("Moving right\n");
-//     reset_encoders();
-//     disable_pid_control();
-//     turn_motor(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
-// }
-// else if (rcvd_turn_direction == LEFT)
-// {
-//     printf("Moving left\n");
-//     reset_encoders();
-//     disable_pid_control();
-//     turn_motor(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
-// }
-// else
-// {
-//     printf("Moving straight\n");
-//     if (rcvd_direction == FORWARDS)
-//     {
-//         printf("Moving forwards\n");
-//         disable_pid_control();
-//         forward_motor(PWM_MAX_LEFT, PWM_MAX_RIGHT);
-//     }
-//     else if (rcvd_direction == BACKWARDS)
-//     {
-//         printf("Moving backwards\n");
-//         disable_pid_control();
-//         reverse_motor(PWM_MAX_LEFT, PWM_MAX_RIGHT);
-//     }
-// }
-
-// // OFFSET MOTOR UNTIL OBSTCLE
-// float obstacle_distance = 25.0f;
-// int turn_direction = RIGHT;
-// float offset = 0.5;
-// reset_encoders();
-// disable_pid_control();
-// // printf("==========\n");
-// // printf("[MAIN] Offset motor %s until obstacle at %f cm.\n", (turn_direction == LEFT) ? "left" : "right", obstacle_distance);
-// sleep_ms(500);
-// offset_current_motor(turn_direction, offset);
-// while (get_obstacle_distance() > obstacle_distance)
-// {
-//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-// }
-// stop_motor(); // Stop after reaching target distance
-// // printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
-
-// // GO STRAIGHT UNTIL OBSTACLE
-// float obstacle_distance = 25.0f;
-// float target_speed = 30;
-// reset_encoders();
-// enable_pid_control();
-// sleep_ms(500);
-// printf("==========\n");
-// printf("[MAIN] Started ultrasonic obstacle detection.\n");
-// forward_motor_pid(target_speed);
-// while (get_obstacle_distance() > obstacle_distance)
-// {
-//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-// }
-// printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
-// stop_motor_pid(); // Stop after reaching target distance
-
-// // TURN AT TARGET ANGLE
-// float target_angle = 180.0f;
-// int turn_direction = LEFT;
-// disable_pid_control();
-// for (int i = 0; i < 1; i++)
-// {
-//     reset_encoders();
-//     sleep_ms(1000);
-//     // printf("==========\n");
-//     // printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-//     turn_motor(turn_direction, target_angle, PWM_TURN, PWM_TURN);
-//     // printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-//     stop_motor();
-// }
-
-// // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-// target_speed = 35.0f;
-// float target_distance = 100.0f;
-// reset_encoders();
-// enable_pid_control();
-// // printf("==========\n");
-// // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-// sleep_ms(500);
-// forward_motor_pid(target_speed);
-// while (get_average_distance() < target_distance)
-// {
-//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-// }
-// stop_motor_pid(); // Stop after reaching target distance
-// // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
-
-// // MOVE FASTER AND FASTER WITH PID
-// float target_speed = MIN_SPEED;
-// int turn_direction = RIGHT;
-// reset_encoders();
-// enable_pid_control();
-// // printf("==========\n");
-// while (1)
-// {
-//     sleep_ms(100);
-//     // printf("[MAIN] Moving %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
-//     forward_motor_pid(target_speed);
-
-//     target_speed = (target_speed < MAX_SPEED) ? target_speed * 1.01f : MAX_SPEED;
-// }
-// stop_motor_pid();
-
-// // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-// float target_speed = 20.0f;
-// float target_distance = 200.0f;
-// reset_encoders();
-// enable_pid_control();
-// sleep_ms(500);
-// // printf("==========\n");
-// // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-// forward_motor_pid(target_speed);
-// while (get_average_distance() < target_distance)
-// {
-//     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-// }
-// stop_motor_pid(); // Stop after reaching target distance
-// // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
-
-// // TURN CONTINUOUSLY IN ONE DIRECTION
-// int turn_direction = LEFT;
-// reset_encoders();
-// disable_pid_control();
-// sleep_ms(500);
-// // printf("==========\n");
-// // printf("[MAIN] Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
-// turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
-// sleep_ms(2000);
-// stop_motor();
-// // printf("[MAIN] Stopped turning left.\n");

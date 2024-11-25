@@ -159,34 +159,34 @@ void gy511_get_data(int16_t *x, int16_t *y, int16_t *z, int16_t *fixed_x, int16_
     //     *fixed_x = -1;  // Movement to the left
     // }
 
-    if (*x > -1000 && *x < 1000) {
+    if (*x > -4000 && *x < 4000) {
         *fixed_x = 0;  // No movement
-    } else if (*x >= 1000 && *x < 4000) {
+    } else if (*x >= 4000 && *x < 6000) {
         *fixed_x = 1;  // Right movement (small)
-    } else if (*x >= 4000 && *x < 8000) {
+    } else if (*x >= 6000 && *x < 8000) {
         *fixed_x = 2;  // Right movement (medium)
     } else if (*x >= 8000 && *x <= 10000) {
         *fixed_x = 3;  // Right movement (large)
-    } else if (*x < -1000 && *x > -4000) {
+    } else if (*x < -4000 && *x > -6000) {
         *fixed_x = -1;  // Left movement (small)
-    } else if (*x <= -4000 && *x > -8000) {
+    } else if (*x <= -6000 && *x > -8000) {
         *fixed_x = -2;  // Left movement (medium)
     } else if (*x <= -8000 && *x >= -10000) {
         *fixed_x = -3;  // Left movement (large)
     }
 
     // Process Y-axis movement (Fixed Y variable)
-    if (*y > -1000 && *y < 1000) {
+    if (*y > -3000 && *y < 3000) {
         *fixed_y = 0;  // No movement
-    } else if (*y >= 1000 && *y < 4000) {
+    } else if (*y >= 3000 && *y < 6000) {
         *fixed_y = 1;  // Forward movement (small)
-    } else if (*y >= 4000 && *y < 8000) {
+    } else if (*y >= 6000 && *y < 8000) {
         *fixed_y = 2;  // Forward movement (medium)
     } else if (*y >= 8000 && *y <= 10000) {
         *fixed_y = 3;  // Forward movement (large)
-    } else if (*y < -1000 && *y > -4000) {
+    } else if (*y < -3000 && *y > -6000) {
         *fixed_y = -1;  // Backward movement (small)
-    } else if (*y <= -4000 && *y > -8000) {
+    } else if (*y <= -6000 && *y > -8000) {
         *fixed_y = -2;  // Backward movement (medium)
     } else if (*y <= -8000 && *y >= -10000) {
         *fixed_y = -3;  // Backward movement (large)

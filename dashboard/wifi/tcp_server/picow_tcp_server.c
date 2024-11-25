@@ -17,7 +17,7 @@
 #define WIFI_PASSWORD "password"
 
 #define TCP_PORT 5001
-#define DEBUG_printf printf
+#define DEBUG_// printf // printf
 #define BUF_SIZE 2048 // Constraint for fixed buffer size
 #define POLL_TIME_S 5
 
@@ -32,7 +32,7 @@ typedef struct TCP_SERVER_T_ {
 static TCP_SERVER_T* tcp_server_init(void) {
     TCP_SERVER_T *state = calloc(1, sizeof(TCP_SERVER_T));
     if (!state) {
-        DEBUG_printf("Failed to allocate state\n");
+        DEBUG_// printf("Failed to allocate state\n");
         return NULL;
     }
     return state;
@@ -48,7 +48,7 @@ static err_t tcp_server_close(void *arg) {
         tcp_err(state->client_pcb, NULL);
         err = tcp_close(state->client_pcb);
         if (err != ERR_OK) {
-            DEBUG_printf("Close failed %d, calling abort\n", err);
+            DEBUG_// printf("Close failed %d, calling abort\n", err);
             tcp_abort(state->client_pcb);
             err = ERR_ABRT;
         }
@@ -60,9 +60,9 @@ static err_t tcp_server_close(void *arg) {
 static err_t tcp_server_result(void *arg, int status) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
     if (status == 0) {
-        DEBUG_printf("Test success\n");
+        DEBUG_// printf("Test success\n");
     } else {
-        DEBUG_printf("Test failed %d\n", status);
+        DEBUG_// printf("Test failed %d\n", status);
     }
     state->complete = true; // This might not be necessary if you're not terminating
     // Optionally keep the server running
@@ -74,7 +74,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
     if (!p) {
         // A NULL pbuf indicates a disconnection
-        DEBUG_printf("Client disconnected or error occurred.\n");
+        DEBUG_// printf("Client disconnected or error occurred.\n");
         tcp_server_close(arg); // Optionally handle client disconnection
         return ERR_OK; // Don't treat this as an error
     }
@@ -82,7 +82,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
     // Process incoming data
     cyw43_arch_lwip_check();
     if (p->tot_len > 0) {
-        //DEBUG_printf("tcp_server_recv %d/%d err %d\n", p->tot_len, state->recv_len, err);
+        //DEBUG_// printf("tcp_server_recv %d/%d err %d\n", p->tot_len, state->recv_len, err);
         
         // Receive the buffer
         const uint16_t buffer_left = BUF_SIZE - state->recv_len;
@@ -103,7 +103,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
         } else {
             state->buffer_recv[BUF_SIZE - 1] = '\0'; // Safety null-termination
         }
-        DEBUG_printf("Message received from client: \n%s", state->buffer_recv);
+        DEBUG_// printf("Message received from client: \n%s", state->buffer_recv);
 
     }
 
@@ -118,28 +118,28 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
 static err_t tcp_server_poll(void *arg, struct tcp_pcb *tpcb) {
     // Here we just return ERR_OK to indicate that we want to keep the connection alive
-    //DEBUG_printf("tcp_server_poll called, keeping the connection alive.\n");
+    //DEBUG_// printf("tcp_server_poll called, keeping the connection alive.\n");
     return ERR_OK;
 }
 
 static void tcp_server_err(void *arg, err_t err) {
     // Handle the error but do not terminate the server
     if (err == ERR_CLSD) {
-        DEBUG_printf("Client disconnected gracefully.\n");
+        DEBUG_// printf("Client disconnected gracefully.\n");
         // Optionally, you can reset the client PCB and prepare for new connections here
     } else if (err != ERR_ABRT) {
-        DEBUG_printf("tcp_client_err_fn %d\n", err);
+        DEBUG_// printf("tcp_client_err_fn %d\n", err);
     }
 }
 
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
     if (err != ERR_OK || client_pcb == NULL) {
-        DEBUG_printf("Failure in accept\n");
+        DEBUG_// printf("Failure in accept\n");
         tcp_server_result(arg, err);
         return ERR_VAL;
     }
-    DEBUG_printf("Client connected\n");
+    DEBUG_// printf("Client connected\n");
 
     state->client_pcb = client_pcb;
     tcp_arg(client_pcb, state);
@@ -155,23 +155,23 @@ static bool tcp_server_open(void *arg) {
     struct netif *netif = netif_list; // Get the first network interface
 
     // Print the IP address and port
-    printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
+    // printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb) {
-        DEBUG_printf("Failed to create pcb\n");
+        DEBUG_// printf("Failed to create pcb\n");
         return false;
     }
 
     err_t err = tcp_bind(pcb, NULL, TCP_PORT);
     if (err) {
-        DEBUG_printf("Failed to bind to port %u\n", TCP_PORT);
+        DEBUG_// printf("Failed to bind to port %u\n", TCP_PORT);
         return false;
     }
 
     state->server_pcb = tcp_listen_with_backlog(pcb, 1);
     if (!state->server_pcb) {
-        DEBUG_printf("Failed to listen\n");
+        DEBUG_// printf("Failed to listen\n");
         if (pcb) {
             tcp_close(pcb);
         }
@@ -182,7 +182,7 @@ static bool tcp_server_open(void *arg) {
     tcp_accept(state->server_pcb, tcp_server_accept);
 
     // Print the bound IP address after binding
-    printf("Server is listening on IP: %s and Port: %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
+    // printf("Server is listening on IP: %s and Port: %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
 
     return true;
 }
@@ -208,18 +208,18 @@ int main() {
     stdio_init_all(); // Initialize stdio for serial output
 
     if (cyw43_arch_init()) {
-        printf("Failed to initialise\n");
+        // printf("Failed to initialise\n");
         return 1;
     }
 
     cyw43_arch_enable_sta_mode();
 
-    printf("Connecting to Wi-Fi...\n");
+    // printf("Connecting to Wi-Fi...\n");
     if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
-        printf("Failed to connect.\n");
+        // printf("Failed to connect.\n");
         return 1;
     } else {
-        printf("Connected to Wi-Fi successfully.\n");
+        // printf("Connected to Wi-Fi successfully.\n");
     }
 
     run_tcp_server_test();
