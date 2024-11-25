@@ -11,8 +11,8 @@
 #include "queue.h"
 #include "barcode.h"
 
-#define WIFI_SSID "Nelson"
-#define WIFI_PASSWORD "nelsonczh"
+#define WIFI_SSID "some phone"
+#define WIFI_PASSWORD "password"
 
 #define TCP_PORT 5000
 #define CLIENT_SERVER_IP "172.20.10.6" // Replace with actual IP

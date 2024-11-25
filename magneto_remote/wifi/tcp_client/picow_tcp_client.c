@@ -17,8 +17,8 @@
 #include "lwip/tcp.h"
 #include "gy511.h" // Include your GY-511 header file
 
-#define WIFI_SSID "Nelson"
-#define WIFI_PASSWORD "nelsonczh"
+#define WIFI_SSID "some phone"
+#define WIFI_PASSWORD "password"
 
 #define SERVER_IP "172.20.10.8"
 #define SERVER_PORT 5000 // Replace with your server's port

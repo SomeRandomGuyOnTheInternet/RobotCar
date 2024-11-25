@@ -13,8 +13,8 @@
 #include "lwip/ip_addr.h"
 #include "lwip/netif.h"
 
-#define WIFI_SSID "kam"
-#define WIFI_PASSWORD "hakambingpassword"
+#define WIFI_SSID "some phone"
+#define WIFI_PASSWORD "password"
 
 #define TCP_PORT 5001
 #define DEBUG_printf printf

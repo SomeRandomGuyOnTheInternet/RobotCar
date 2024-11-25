@@ -7,8 +7,8 @@
 #include "gy511.h"
 #include "tcp_client.h"
 
-#define WIFI_SSID "Nelson"
-#define WIFI_PASSWORD "nelsonczh"
+#define WIFI_SSID "some phone"
+#define WIFI_PASSWORD "password"
 
 // Define BUF_SIZE if not defined
 #define BUF_SIZE 2048 
@@ -32,7 +32,6 @@ int main() {
     // Connect to Wi-Fi
     start_wifi(); // Use the new function to connect
     printf("Hello stupid PICO W\n");
-
 
     return 0;
 }
