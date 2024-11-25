@@ -15,7 +15,7 @@
 #define WIFI_PASSWORD "password"
 
 #define TCP_PORT 5000
-#define CLIENT_SERVER_IP "172.20.10.6" // Replace with actual IP
+#define CLIENT_SERVER_IP "172.20.10.2" // Replace with IP of dashboard pico
 #define CLIENT_SERVER_PORT 5001
 #define TCP_printf printf("[TCP] "); printf
 #define BUF_SIZE 2048
@@ -160,8 +160,6 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
         state->buffer_recv[null_term_pos] = '\0';
         memcpy(last_recvd_data, state->buffer_recv, state->recv_len);
         last_recvd_data[null_term_pos] = '\0';
-
-        TCP_printf("Message received:\n%s", last_recvd_data);
 
         // // Send data to server
         // send_gy511_data_to_server(state->buffer_recv);
@@ -337,6 +335,16 @@ int init_server()
     return 0;
 }
 
-const char *get_tcp_last_rcvd() {
-    return (const char *)last_recvd_data; // Return as a string
+const char* *get_tcp_last_rcvd() {
+    TCP_printf("Message received:\n%s", last_recvd_data);
+    const char* str = (char*)malloc(BUF_SIZE + 1);
+    if (!str) {
+        return NULL; // Memory allocation failed
+    }
+
+    // Copy the data into the string buffer
+    memcpy(str, last_recvd_data, BUF_SIZE);
+
+    return str; // Return the string (caller must free)
+    // return (const char *)last_recvd_data; // Return as a string
 }

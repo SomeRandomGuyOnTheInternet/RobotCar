@@ -103,9 +103,9 @@ void init_drivers()
     printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
-    barcode_init();
-    printf("[MAIN/START] Barcode pins initialised\n");
-    sleep_ms(500);
+    // barcode_init();
+    // printf("[MAIN/START] Barcode pins initialised\n");
+    // sleep_ms(500);
 }
 
 void init_buttons()
@@ -195,6 +195,8 @@ int get_tcp_magneto_data()
 {
     const char *data = get_tcp_last_rcvd();
 
+    printf("[MAIN/MAGNETO] Received Data: %s\n", data);
+
     // Check if the data is non-empty
     if (data != NULL && data[0] != '\0')
     {
@@ -205,6 +207,7 @@ int get_tcp_magneto_data()
         if (sscanf(data, "X: %*d, Y: %*d, Z: %*d, Fixed_X: %d, Fixed_Y: %d", &x, &y) == 2)
         {
             printf("[MAIN/MAGNETO] Parsed values - X: %d, Y: %d\n", x, y);
+            free((void *)data);
             process_magneto_data(x, y);
             return 1;
         }
@@ -217,6 +220,8 @@ int get_tcp_magneto_data()
     {
         printf("[MAIN/MAGNETO] No data received yet.\n");
     }
+
+    free((void *)data);
 
     return 0;
 }
@@ -245,14 +250,14 @@ void main_task()
             if (rcvd_direction == FORWARDS)
             {
                 printf("[MAIN] Moving forwards\n");
-                forward_motor_manual(PWM_MAX, PWM_MAX);
-                // forward_motor_pid(rcvd_target_speed);
+                // forward_motor_manual(PWM_MAX, PWM_MAX);
+                forward_motor_pid(rcvd_target_speed);
             }
             else if (rcvd_direction == BACKWARDS)
             {
                 printf("[MAIN] Moving backwards\n");
-                reverse_motor_manual(PWM_MAX, PWM_MAX);
-                // reverse_motor_pid(rcvd_target_speed);
+                // reverse_motor_manual(PWM_MAX, PWM_MAX);
+                reverse_motor_pid(rcvd_target_speed);
             }
         }
         else if (rcvd_direction == NEUTRAL && rcvd_turn_direction != NEUTRAL)
@@ -273,7 +278,7 @@ void main_task()
             printf("[MAIN] Moving straight and turning\n");
             offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
         }
-        
+
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
