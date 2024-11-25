@@ -272,7 +272,7 @@ void pid_task(void *params)
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
 
-            if (average_speed < 5)
+            if (average_speed < JUMPSTART_SPEED_THRESHOLD)
             {
                 // printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_JUMPSTART;

@@ -150,13 +150,29 @@ void gy511_get_data(int16_t *x, int16_t *y, int16_t *z, int16_t *fixed_x, int16_
         *y = -MAX_TILT;
     }
 
-    // Process X-axis movement (Fixed X variable)
+    // // Process X-axis movement (Fixed X variable)
+    // if (*x > -1000 && *x < 1000) {
+    //     *fixed_x = 0;  // No movement
+    // } else if (*x > 0) {
+    //     *fixed_x = 1;  // Movement to the right
+    // } else {
+    //     *fixed_x = -1;  // Movement to the left
+    // }
+
     if (*x > -1000 && *x < 1000) {
         *fixed_x = 0;  // No movement
-    } else if (*x > 0) {
-        *fixed_x = 1;  // Movement to the right
-    } else {
-        *fixed_x = -1;  // Movement to the left
+    } else if (*x >= 1000 && *x < 4000) {
+        *fixed_x = 1;  // Right movement (small)
+    } else if (*x >= 4000 && *x < 8000) {
+        *fixed_x = 2;  // Right movement (medium)
+    } else if (*x >= 8000 && *x <= 10000) {
+        *fixed_x = 3;  // Right movement (large)
+    } else if (*x < -1000 && *x > -4000) {
+        *fixed_x = -1;  // Left movement (small)
+    } else if (*x <= -4000 && *x > -8000) {
+        *fixed_x = -2;  // Left movement (medium)
+    } else if (*x <= -8000 && *x >= -10000) {
+        *fixed_x = -3;  // Left movement (large)
     }
 
     // Process Y-axis movement (Fixed Y variable)

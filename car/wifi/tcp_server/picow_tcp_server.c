@@ -209,7 +209,7 @@ static bool tcp_server_open(void *arg)
     TCP_SERVER_T *state = (TCP_SERVER_T *)arg;
     struct netif *netif = netif_list;
 
-    printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
+    TCP_printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb)
