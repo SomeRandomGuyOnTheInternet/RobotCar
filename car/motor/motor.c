@@ -344,7 +344,7 @@ void motor_pwm_init()
     uint slice_left = pwm_gpio_to_slice_num(L_MOTOR_ENA);
     uint slice_right = pwm_gpio_to_slice_num(R_MOTOR_ENB);
 
-    // Configure PWM frequency to 40 kHz (125 MHz / PWM_MAX)
+    // Configure PWM frequency (125 MHz / PWM_MAX)
     pwm_set_wrap(slice_left, PWM_MAX);
     pwm_set_wrap(slice_right, PWM_MAX);
 
