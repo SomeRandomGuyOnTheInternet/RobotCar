@@ -17,7 +17,7 @@
 #define TCP_PORT 5000
 #define CLIENT_SERVER_IP "172.20.10.2" // Replace with IP of dashboard pico
 #define CLIENT_SERVER_PORT 5001
-#define TCP_// printf // printf("[TCP] "); // printf
+#define TCP_printf printf("[TCP] "); printf
 #define BUF_SIZE 2048
 #define POLL_TIME_S 5
 
@@ -48,7 +48,7 @@ static TCP_SERVER_T *tcp_server_init(void)
     TCP_SERVER_T *state = calloc(1, sizeof(TCP_SERVER_T));
     if (!state)
     {
-        TCP_// printf("Failed to allocate state\n");
+        TCP_printf("Failed to allocate state\n");
         return NULL;
     }
     return state;
@@ -59,10 +59,10 @@ static err_t tcp_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     if (err != ERR_OK)
     {
-        TCP_// printf("Failed to connect to the remote server\n");
+        TCP_printf("Failed to connect to the remote server\n");
         return err;
     }
-    TCP_// printf("Connected to the remote server\n");
+    TCP_printf("Connected to the remote server\n");
 
     const char *message = "Hello from TCP client";
     tcp_write(tpcb, message, strlen(message), TCP_WRITE_FLAG_COPY);
@@ -75,21 +75,21 @@ int tcp_client_connect(void)
     client_pcb = tcp_new(); // Initialize pcb_client here
     if (client_pcb != NULL)
     {
-        TCP_// printf("client_pcb is not null\n");
+        TCP_printf("client_pcb is not null\n");
         ip_addr_t server_ip;
         ip4addr_aton(CLIENT_SERVER_IP, &server_ip); // Convert IP string to IP address struct
         // Set up connection (assuming 'server_ip' and 'port' are defined)
         err_t err = tcp_connect(client_pcb, &server_ip, CLIENT_SERVER_PORT, tcp_client_connected);
         if (err != ERR_OK)
         {
-            TCP_// printf("Failed to initiate TCP client connection, error code: %d\n", err);
+            TCP_printf("Failed to initiate TCP client connection, error code: %d\n", err);
             return false;
         }
         return true;
     }
     else
     {
-        TCP_// printf("client_pcb is null");
+        TCP_printf("client_pcb is null");
         return false;
     }
 }
@@ -108,7 +108,7 @@ static err_t tcp_server_close(void *arg)
         err = tcp_close(state->client_pcb);
         if (err != ERR_OK)
         {
-            TCP_// printf("Close failed %d, calling abort\n", err);
+            TCP_printf("Close failed %d, calling abort\n", err);
             tcp_abort(state->client_pcb);
             err = ERR_ABRT;
         }
@@ -122,11 +122,11 @@ static err_t tcp_server_result(void *arg, int status)
     TCP_SERVER_T *state = (TCP_SERVER_T *)arg;
     if (status == 0)
     {
-        TCP_// printf("Test success\n");
+        TCP_printf("Test success\n");
     }
     else
     {
-        TCP_// printf("Test failed %d\n", status);
+        TCP_printf("Test failed %d\n", status);
     }
     state->complete = true;
     return ERR_OK;
@@ -138,7 +138,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
     if (!p)
     {
-        TCP_// printf("Client disconnected or error occurred.\n");
+        TCP_printf("Client disconnected or error occurred.\n");
         tcp_server_close(arg);
         return ERR_OK;
     }
@@ -178,7 +178,7 @@ static void tcp_server_err(void *arg, err_t err)
 {
     if (err == ERR_CLSD)
     {
-        TCP_// printf("Client disconnected gracefully.\n");
+        TCP_printf("Client disconnected gracefully.\n");
     }
 }
 
@@ -187,11 +187,11 @@ static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err)
     TCP_SERVER_T *state = (TCP_SERVER_T *)arg;
     if (err != ERR_OK || client_pcb == NULL)
     {
-        TCP_// printf("Failure in accept\n");
+        TCP_printf("Failure in accept\n");
         tcp_server_result(arg, err);
         return ERR_VAL;
     }
-    TCP_// printf("Client connected\n");
+    TCP_printf("Client connected\n");
 
     state->client_pcb = client_pcb;
     tcp_arg(client_pcb, state);
@@ -208,26 +208,26 @@ static bool tcp_server_open(void *arg)
     struct netif *netif = netif_list;
     (void)netif; // Suppress unused variable warning
 
-    TCP_// printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
+    TCP_printf("Starting server at %s on port %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb)
     {
-        TCP_// printf("Failed to create pcb\n");
+        TCP_printf("Failed to create pcb\n");
         return false;
     }
 
     err_t err = tcp_bind(pcb, NULL, TCP_PORT);
     if (err)
     {
-        TCP_// printf("Failed to bind to port %u\n", TCP_PORT);
+        TCP_printf("Failed to bind to port %u\n", TCP_PORT);
         return false;
     }
 
     state->server_pcb = tcp_listen_with_backlog(pcb, 1);
     if (!state->server_pcb)
     {
-        TCP_// printf("Failed to listen\n");
+        TCP_printf("Failed to listen\n");
         if (pcb)
         {
             tcp_close(pcb);
@@ -238,13 +238,13 @@ static bool tcp_server_open(void *arg)
     tcp_arg(state->server_pcb, state);
     tcp_accept(state->server_pcb, tcp_server_accept);
 
-    // printf("Server is listening on IP: %s and Port: %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
+    printf("Server is listening on IP: %s and Port: %u\n", ip4addr_ntoa(netif_ip4_addr(netif)), TCP_PORT);
     return true;
 }
 
 void send_gy511_data_to_server(const char *data)
 {
-    TCP_// printf("SENDING GY5111:\n%s", data);
+    TCP_printf("SENDING GY5111:\n%s", data);
     if (client_pcb == NULL)
     {
         // Handle error, as pcb_client is not initialized
@@ -257,7 +257,7 @@ void send_gy511_data_to_server(const char *data)
 
 void send_decoded_data_to_server(const char *data)
 {
-    TCP_// printf("Sending decoded data: %s\n", data);
+    // TCP_printf("Sending decoded data: %s\n", data);
     if (client_pcb == NULL)
     {
         // Handle error, as pcb_client is not initialized
@@ -294,7 +294,7 @@ static void tcp_client_task(void *pvParameters)
 {
     if (!tcp_client_connect())
     {
-        TCP_// printf("Failed to initiate TCP client connection\n");
+        TCP_printf("Failed to initiate TCP client connection\n");
     }
     while (1)
     {
@@ -307,21 +307,21 @@ int init_server()
 {
     if (cyw43_arch_init())
     {
-        TCP_// printf("Failed to initialise\n");
+        TCP_printf("Failed to initialise\n");
         return 1;
     }
 
     cyw43_arch_enable_sta_mode();
 
-    // printf("Connecting to Wi-Fi...\n");
+    printf("Connecting to Wi-Fi...\n");
     if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000))
     {
-        TCP_// printf("Failed to connect.\n");
+        TCP_printf("Failed to connect.\n");
         return 1;
     }
     else
     {
-        TCP_// printf("Connected to Wi-Fi successfully.\n");
+        TCP_printf("Connected to Wi-Fi successfully.\n");
         // ip4_addr_t ip = netif->ip_addr;
         // // printf("Client IP address: %s\n", ip4addr_ntoa(&ip));
     }
@@ -337,7 +337,7 @@ int init_server()
 }
 
 char* get_tcp_last_rcvd() {
-    TCP_// printf("Message received:\n%s", last_recvd_data);
+    TCP_printf("Message received:\n%s", last_recvd_data);
     char* str = (char*)malloc(BUF_SIZE + 1);
     if (!str) {
         return NULL; // Memory allocation failed

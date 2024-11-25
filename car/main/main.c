@@ -90,17 +90,17 @@ void init_drivers()
 {
     // Initialise encoder sensor
     encoder_init();
-    // printf("[MAIN/START] Encoder pins initialised\n");
+    printf("[MAIN/START] Encoder pins initialised\n");
     sleep_ms(500);
 
     // Initialise motor pins and PWM
     motor_init();
-    // printf("[MAIN/START] Motor pins and PWM initialised\n");
+    printf("[MAIN/START] Motor pins and PWM initialised\n");
     sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
-    // printf("[MAIN/START] Ultrasonic pins initialised\n");
+    printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
     // barcode_init();
@@ -124,7 +124,7 @@ void init_buttons()
     button_queue = xQueueCreate(10, sizeof(int));
     if (button_queue == NULL)
     {
-        // printf("[MAIN/START] Failed to create button queue!\n");
+        printf("[MAIN/START] Failed to create button queue!\n");
         while (1)
             ; // Halt if queue creation fails
     }
@@ -138,7 +138,7 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
-    // printf("[MAIN/START] Interrupts initialised\n");
+    printf("[MAIN/START] Interrupts initialised\n");
 }
 
 void motor_conditioning_task()
@@ -198,9 +198,6 @@ int get_tcp_magneto_data()
     // Check if the data is non-empty
     if (data != NULL && data[0] != '\0')
     {
-        // printf("[MAIN/MAGNETO] Processed Data: %s\n", data);
-
-        // Example: Parse the string
         int x = 0, y = 0;
         if (sscanf(data, "X: %*d, Y: %*d, Z: %*d, Fixed_X: %d, Fixed_Y: %d", &x, &y) == 2)
         {
@@ -211,12 +208,12 @@ int get_tcp_magneto_data()
         }
         else
         {
-            // printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
+            printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
         }
     }
     else
     {
-        // printf("[MAIN/MAGNETO] No data received yet.\n");
+        printf("[MAIN/MAGNETO] No data received yet.\n");
     }
 
     free((void *)data);
@@ -229,7 +226,7 @@ void main_task()
     init_interrupts();
     init_server();
 
-    // printf("[MAIN] Starting test\n");
+    printf("[MAIN] Starting test\n");
 
     stop_motor_manual();
 
@@ -280,7 +277,7 @@ void main_task()
             printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
             stop_motor_manual();
             vTaskDelay(pdMS_TO_TICKS(2000));
-            // printf("[MAIN] Resuming movement.\n");
+            printf("[MAIN] Resuming movement.\n");
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -299,7 +296,7 @@ void reset_tasks()
     vTaskDelete(current_task_handle);
     current_task_handle = NULL;
     current_task = NO_TASK;
-    // printf("[MAIN/TASK] Previous task stopped.\n");
+    printf("[MAIN/TASK] Previous task stopped.\n");
 }
 
 void task_manager()
@@ -339,7 +336,7 @@ void task_manager()
                 }
 
                 current_task = selected_task;
-                // printf("[MAIN/TASK] Task for button %d started.\n", current_task);
+                printf("[MAIN/TASK] Task for button %d started.\n", current_task);
             }
         }
     }

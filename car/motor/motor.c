@@ -90,7 +90,7 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         }
         if (use_pid_control)
         {
-            // printf("[TURN] Turn target distance reached on PID. Stopping.\n");
+            printf("[TURN] Turn target distance reached on PID. Stopping.\n");
             stop_motor_pid();
         }
     }
@@ -112,15 +112,15 @@ void stop_motor()
 
 void motor_conditioning()
 {
-    // printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
+    printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
     stop_motor();
     forward_motor(PWM_JUMPSTART, PWM_JUMPSTART);
     sleep_ms(15000);
-    // printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
+    printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
     reverse_motor(PWM_JUMPSTART, PWM_JUMPSTART);
     sleep_ms(15000);
     stop_motor();
-    // printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
+    printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
 }
 
 void disable_pid_control()
@@ -267,7 +267,7 @@ void pid_task(void *params)
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();
             float average_speed = get_average_speed();
-            // printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
+            printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
 
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
