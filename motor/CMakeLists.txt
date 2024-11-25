@@ -3,7 +3,7 @@ add_executable(motor
 )
 
 # Include the current directory for FreeRTOSConfig.h
-target_include_directories(motor PRIVATE 
+target_include_directories(motor PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/../encoder
 )
@@ -31,7 +31,7 @@ add_library(motor_lib
 )
 
 # Include the current directory for FreeRTOSConfig.h
-target_include_directories(motor_lib PRIVATE 
+target_include_directories(motor_lib PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/../encoder
 )

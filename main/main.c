@@ -19,6 +19,7 @@
 #include "ultrasonic.h"
 #include "tcp_server.h"
 #include "barcode.h"
+#include "line_following.h"
 
 #define MAIN_BTN_PIN 22
 #define CONDITION_MOTOR_BTN_PIN 21
@@ -65,11 +66,13 @@ void task_btn_callbacks(uint gpio, uint32_t events)
         {
         // Left wheel encoder callback
         case MAIN_BTN_PIN:
+            printf("[MAIN/BTN] Main button pressed\n");
             xQueueSendFromISR(button_queue, &MAIN_TASK, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             break;
         // Right wheel encoder callback
         case CONDITION_MOTOR_BTN_PIN:
+            printf("[MAIN/BTN] Conditioning button pressed\n");
             xQueueSendFromISR(button_queue, &CONDITION_MOTOR_TASK, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             break;
@@ -82,41 +85,61 @@ void task_btn_callbacks(uint gpio, uint32_t events)
 // Function to init all sensors and motors
 void init_drivers()
 {
+    printf("[MAIN/INIT] Starting driver initialization\n");
+
     // Initialise encoder sensor
     encoder_init();
-    // printf("[MAIN/START] Encoder pins initialised\n");
+    printf("[MAIN/INIT] Encoder pins initialized\n");
     sleep_ms(500);
 
     // Initialise motor pins and PWM
     motor_init();
-    // printf("[MAIN/START] Motor pins and PWM initialised\n");
+    motor_pwm_init(); // Added PWM initialization
+    printf("[MAIN/INIT] Motor pins and PWM initialized\n");
     sleep_ms(500);
 
     // Initialise ultrasonic sensor
     ultrasonic_init();
-    // printf("[MAIN/START] Ultrasonic pins initialised\n");
+    printf("[MAIN/INIT] Ultrasonic pins initialized\n");
     sleep_ms(500);
 
+    // Initialize barcode scanning
     start_barcode();
-    // printf("[MAIN/START] Barcode pins initialised\n");
+    printf("[MAIN/INIT] Barcode pins initialized\n");
     sleep_ms(500);
 
-    start_server();
-    // printf("[MAIN/START] TCP server initialised\n");
+    // start_server();
+    // printf("[MAIN/INIT] TCP server initialized\n");
+    // sleep_ms(500);
+
+    // Initialize line sensor
+    init_line_sensor();
+    printf("[MAIN/INIT] Line sensor initialized\n");
     sleep_ms(500);
+
+    // Seed random number generator with current time
+    srand(time_us_64());
+    printf("[MAIN/INIT] Random number generator seeded\n");
+
+    printf("[MAIN/INIT] All drivers initialized successfully\n");
 }
 
 void init_interrupts()
 {
+    printf("[MAIN/INIT] Starting interrupt initialization\n");
+
     // Initialise interrupts for needed sensors
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
-    // printf("[MAIN/START] Interrupts initialised\n");
+
+    printf("[MAIN/INIT] Interrupts initialized successfully\n");
 }
 
 void init_buttons()
 {
+    printf("[MAIN/INIT] Starting button initialization\n");
+
     gpio_init(MAIN_BTN_PIN);
     gpio_set_dir(MAIN_BTN_PIN, GPIO_IN);
     gpio_pull_up(MAIN_BTN_PIN);
@@ -131,169 +154,98 @@ void init_buttons()
     button_queue = xQueueCreate(10, sizeof(int));
     if (button_queue == NULL)
     {
-        // printf("[MAIN/START] Failed to create button queue!\n");
+        printf("[MAIN/INIT] ERROR: Failed to create button queue!\n");
         while (1)
             ; // Halt if queue creation fails
     }
 
-    // printf("[MAIN/START] Task buttons initialised\n");
+    printf("[MAIN/INIT] Buttons initialized successfully\n");
 }
 
 void condition_motor()
 {
-    // printf("[MOTOR/CONDITIONING] Running motor conditioning.\n");
+    printf("[MOTOR/CONDITIONING] Starting motor conditioning\n");
     stop_motor();
     move_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
-    // printf("[MOTOR/CONDITIONING] Reversing motor conditioning.\n");
+    printf("[MOTOR/CONDITIONING] Reversing motor conditioning\n");
     reverse_motor(PWM_KICKSTART, PWM_KICKSTART);
     sleep_ms(15000);
     stop_motor();
-    // printf("[MOTOR/CONDITIONING] Motor conditioning complete.\n");
+    printf("[MOTOR/CONDITIONING] Motor conditioning complete\n");
 
     current_task = NO_TASK; // Reset global state
     current_task_handle = NULL;
     vTaskDelete(NULL); // Delete the current task
 }
 
-void station_1_run()
+void line_following()
 {
+    printf("[MAIN/LINE] Starting line following initialization\n");
+
     init_interrupts();
+    printf("[MAIN/LINE] Interrupts initialized for line following\n");
 
-    // printf("[MAIN] Starting test\n");
+    // Create the line following task
+    TaskHandle_t lineFollowHandle = NULL;
+    printf("[MAIN/LINE] Creating line following task\n");
 
-    // // OFFSET MOTOR UNTIL OBSTCLE
-    // float obstacle_distance = 25.0f;
-    // int turn_direction = RIGHT;
-    // float offset = 0.5;
-    // reset_encoders();
-    // disable_pid_control();
-    // // printf("==========\n");
-    // // printf("[MAIN] Offset motor %s until obstacle at %f cm.\n", (turn_direction == LEFT) ? "left" : "right", obstacle_distance);
-    // sleep_ms(500);
-    // offset_current_motor(turn_direction, offset);
-    // while (get_obstacle_distance() > obstacle_distance)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    // }
-    // stop_motor(); // Stop after reaching target distance
-    // // printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
+    BaseType_t result = xTaskCreate(lineFollowTask, "Line Following", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &lineFollowHandle);
 
-    // GO STRAIGHT UNTIL OBSTACLE
-    float obstacle_distance = 25.0f;
-    float target_speed = 30;
-    reset_encoders();
-    enable_pid_control();
-    sleep_ms(500);
-    printf("==========\n");
-    printf("[MAIN] Started ultrasonic obstacle detection.\n");
-    forward_motor_pid(target_speed);
-    while (get_obstacle_distance() > obstacle_distance)
+    if (result != pdPASS)
     {
-        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    }
-    printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", obstacle_distance);
-    stop_motor_pid(); // Stop after reaching target distance
-
-    // TURN AT TARGET ANGLE
-    float target_angle = 180.0f;
-    int turn_direction = LEFT;
-    disable_pid_control();
-    for (int i = 0; i < 1; i++)
-    {
-        reset_encoders();
-        sleep_ms(1000);
-        // printf("==========\n");
-        // printf("[MAIN] Turning %s %f degrees.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-        turn_motor(turn_direction, target_angle, PWM_TURN, PWM_TURN);
-        // printf("[MAIN] Turned %s %f degrees. Stopping.\n", (turn_direction == LEFT) ? "left" : "right", target_angle);
-        stop_motor();
+        printf("[MAIN/LINE] ERROR: Failed to create line following task\n");
+        current_task = NO_TASK;
+        current_task_handle = NULL;
+        vTaskDelete(NULL);
+        return;
     }
 
-    // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-    target_speed = 35.0f;
-    float target_distance = 100.0f;
-    reset_encoders();
-    enable_pid_control();
-    // printf("==========\n");
-    // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-    sleep_ms(500);
-    forward_motor_pid(target_speed);
-    while (get_average_distance() < target_distance)
+    printf("[MAIN/LINE] Line following task created successfully\n");
+
+    // Wait until the task is deleted or interrupted
+    printf("[MAIN/LINE] Entering monitoring loop\n");
+    while (current_task == MAIN_TASK)
     {
-        vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
-    stop_motor_pid(); // Stop after reaching target distance
-    // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
 
-    // // MOVE FASTER AND FASTER WITH PID
-    // float target_speed = MIN_SPEED;
-    // int turn_direction = RIGHT;
-    // reset_encoders();
-    // enable_pid_control();
-    // // printf("==========\n");
-    // while (1)
-    // {
-    //     sleep_ms(100);
-    //     // printf("[MAIN] Moving %s continuously at %f cm/s.\n", (turn_direction == LEFT) ? "left" : "right", target_speed);
-    //     forward_motor_pid(target_speed);
+    // Clean up if task is interrupted
+    if (lineFollowHandle != NULL)
+    {
+        printf("[MAIN/LINE] Cleaning up line following task\n");
+        vTaskDelete(lineFollowHandle);
+    }
 
-    //     target_speed = (target_speed < MAX_SPEED) ? target_speed * 1.01f : MAX_SPEED;
-    // }
-    // stop_motor_pid();
-
-    // // GO STRAIGHT AT SPEED UNTIL TARGET DISTANCE
-    // float target_speed = 20.0f;
-    // float target_distance = 200.0f;
-    // reset_encoders();
-    // enable_pid_control();
-    // sleep_ms(500);
-    // // printf("==========\n");
-    // // printf("[MAIN] Doing PID move motor at %f cm/s until %f cm.\n", target_speed, target_distance);
-    // forward_motor_pid(target_speed);
-    // while (get_average_distance() < target_distance)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(5)); // Delay to periodically check distance
-    // }
-    // stop_motor_pid(); // Stop after reaching target distance
-    // // printf("[MAIN] Reached %f cm. Stopping.\n", target_distance);
-
-    // // TURN CONTINUOUSLY IN ONE DIRECTION
-    // int turn_direction = LEFT;
-    // reset_encoders();
-    // disable_pid_control();
-    // sleep_ms(500);
-    // // printf("==========\n");
-    // // printf("[MAIN] Turning %s continuously.\n", (turn_direction == LEFT) ? "left" : "right");
-    // turn_motor(turn_direction, CONTINUOUS, PWM_MAX, PWM_MAX);
-    // sleep_ms(2000);
-    // stop_motor();
-    // // printf("[MAIN] Stopped turning left.\n");
-
-    current_task = NO_TASK; // Reset global state
+    printf("[MAIN/LINE] Line following task cleanup complete\n");
+    current_task = NO_TASK;
     current_task_handle = NULL;
-    vTaskDelete(NULL); // Delete the current task
+    vTaskDelete(NULL);
 }
 
 void task_manager()
 {
     int selected_task;
+    printf("[MAIN/TASK] Task manager started\n");
 
     while (1)
     {
         // Wait for a button press signal
         if (xQueueReceive(button_queue, &selected_task, portMAX_DELAY))
         {
+            printf("[MAIN/TASK] Received task selection: %d\n", selected_task);
+
             // If the pressed button matches the currently active task
             if (current_task == selected_task)
             {
+                printf("[MAIN/TASK] Stopping current task: %d\n", current_task);
                 // Stop the currently running task
                 if (current_task_handle != NULL)
                 {
                     vTaskDelete(current_task_handle);
                     current_task_handle = NULL;
                     current_task = NO_TASK;
-                    // printf("[MAIN/TASK] Task for button %d stopped.\n", selected_task);
+                    printf("[MAIN/TASK] Task %d stopped\n", selected_task);
                 }
             }
             else
@@ -301,16 +253,17 @@ void task_manager()
                 // Stop the currently running task
                 if (current_task_handle != NULL)
                 {
+                    printf("[MAIN/TASK] Stopping previous task: %d\n", current_task);
                     vTaskDelete(current_task_handle);
                     current_task_handle = NULL;
                     current_task = NO_TASK;
-                    // printf("[MAIN/TASK] Previous task stopped.\n");
+                    printf("[MAIN/TASK] Previous task stopped\n");
                 }
 
                 // Start the new task
                 if (selected_task == MAIN_TASK)
                 {
-                    xTaskCreate(station_1_run, "Main Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
+                    xTaskCreate(line_following, "Main Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
                 else if (selected_task == CONDITION_MOTOR_TASK)
                 {
@@ -318,7 +271,7 @@ void task_manager()
                 }
 
                 current_task = selected_task;
-                // printf("[MAIN/TASK] Task for button %d started.\n", current_task);
+                printf("[MAIN/TASK] Task %d started\n", current_task);
             }
         }
     }
@@ -329,17 +282,21 @@ int main()
     // Initialise standard I/O
     stdio_init_all();
     sleep_ms(1000);
+    printf("\n[MAIN] Starting robot program...\n");
 
     // Init all required
     init_drivers();
     init_buttons();
 
+    printf("[MAIN] Creating task manager\n");
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
 
+    printf("[MAIN] Starting FreeRTOS scheduler\n");
     // Start FreeRTOS scheduler
     vTaskStartScheduler();
 
     // This point will not be reached because the scheduler is running
+    printf("[MAIN] ERROR: Scheduler failed to start!\n");
     while (1)
     {
         tight_loop_contents();

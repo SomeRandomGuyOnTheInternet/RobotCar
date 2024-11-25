@@ -17,6 +17,7 @@ target_include_directories(main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/../wifi
         ${CMAKE_CURRENT_LIST_DIR}/../wifi/tcp_server # Include tcp_client folder
         ${CMAKE_CURRENT_LIST_DIR}/../ir/barcode
+        ${CMAKE_CURRENT_LIST_DIR}/../ir/line_following
 )
 
 target_compile_definitions(main PRIVATE
@@ -37,9 +38,8 @@ target_link_libraries(main
         motor_lib
         encoder_lib
         ultrasonic_lib
+        line_following_lib
 )
-
-# link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(main)
