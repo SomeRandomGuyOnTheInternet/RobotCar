@@ -4,20 +4,20 @@ add_executable(picow_tcpip_client_background
 )
 
 target_compile_definitions(picow_tcpip_client_background PRIVATE
-        WIFI_SSID="${WIFI_SSID}"
-        WIFI_PASSWORD="${WIFI_PASSWORD}"
+        WIFI_SSID= "${WIFI_SSID}"
+        WIFI_PASSWORD= "${WIFI_PASSWORD}"
 )
 
 target_include_directories(picow_tcpip_client_background PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/.. # For common lwipopts
-        ${CMAKE_CURRENT_LIST_DIR}/../../magneto  # Path to gy511.h
+        ${CMAKE_CURRENT_LIST_DIR}/../../magneto # Path to gy511.h
 )
 
 target_link_libraries(picow_tcpip_client_background
         pico_cyw43_arch_lwip_threadsafe_background
         pico_stdlib
-        gy511_lib 
+        gy511_lib
 
 )
 
@@ -34,8 +34,8 @@ add_executable(picow_tcpip_client_poll
 )
 
 target_compile_definitions(picow_tcpip_client_poll PRIVATE
-        WIFI_SSID="${WIFI_SSID}"
-        WIFI_PASSWORD="${WIFI_PASSWORD}"
+        WIFI_SSID= "${WIFI_SSID}"
+        WIFI_PASSWORD= "${WIFI_PASSWORD}"
 )
 
 target_include_directories(picow_tcpip_client_poll PRIVATE
@@ -46,7 +46,7 @@ target_include_directories(picow_tcpip_client_poll PRIVATE
 target_link_libraries(picow_tcpip_client_poll
         pico_cyw43_arch_lwip_poll
         pico_stdlib
-        gy511_lib  # Link the gy511 library
+        gy511_lib # Link the gy511 library
         cyw43_arch
 )
 
