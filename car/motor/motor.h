@@ -25,7 +25,6 @@
 #define Ki 0.00f
 #define Kd 0.00f
 
-#define PWM_JUMPSTART 2100
 #define PWM_MIN 2100
 #define PWM_MIN_LEFT 2100
 #define PWM_MIN_RIGHT 1725
@@ -35,6 +34,7 @@
 #define PWM_MAX 3500
 #define PWM_MAX_LEFT 3500
 #define PWM_MAX_RIGHT 3400
+#define PWM_JUMPSTART 2100
 #define PWM_TURN 2600
 
 #define MIN_SPEED 30.0f

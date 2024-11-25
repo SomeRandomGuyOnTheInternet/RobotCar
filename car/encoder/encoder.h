@@ -31,8 +31,8 @@
 #define LEFT 3
 
 typedef struct {
-    uint32_t pulse_count;
-    uint64_t timestamp;
+    volatile uint32_t pulse_count;
+    volatile uint64_t timestamp;
 } EncoderData;
 
 typedef struct {
