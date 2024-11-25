@@ -33,7 +33,6 @@ target_link_libraries(car_main
         motor_lib
         encoder_lib
         ultrasonic_lib
-        barcode_lib
 )
 
 # link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)
