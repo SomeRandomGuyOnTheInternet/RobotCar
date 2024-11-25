@@ -170,12 +170,12 @@ void process_magneto_data(int x, int y)
     if (x > 0 && x <= MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = RIGHT;
-        rcvd_direction_offset = 1.0f * (x / MAGNETO_MAX_SLICES);
+        rcvd_direction_offset = x / MAGNETO_MAX_SLICES;
     }
     else if (x < 0 && x >= -MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = LEFT;
-        rcvd_direction_offset = 1.0f * (x / MAGNETO_MAX_SLICES);
+        rcvd_direction_offset = abs(x) / MAGNETO_MAX_SLICES;
     }
     else
     {
