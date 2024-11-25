@@ -1,30 +1,47 @@
-add_executable(magneto_remote_main
-        main.c
+cmake_minimum_required(VERSION 3.13)
+
+# Set the project name
+project(RoboticCar)
+
+# Enable the PICO SDK
+include(../../pico_sdk_import.cmake)
+
+# Initialize the SDK
+pico_sdk_init()
+
+add_compile_definitions(CYW43_LWIP=1)
+
+add_executable(magneto_main
+    main.c
+    ../wifi/tcp_client/picow_tcp_client.c  # Correct path to your TCP client source file
+    ../magneto/gy511.c                               # Add your GY-511 source file here
 )
 
-target_include_directories(magneto_remote_main PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/..
+target_include_directories(magneto_main PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/..
+    ${CMAKE_CURRENT_LIST_DIR}/../wifi
+    ${CMAKE_CURRENT_LIST_DIR}/../wifi/tcp_client # Include tcp_client folder
+    ${CMAKE_CURRENT_LIST_DIR}/../magneto
 )
 
-target_compile_definitions(magneto_remote_main PRIVATE
-        PICO_MAX_SHARED_IRQ_HANDLERS=5
+target_compile_definitions(magneto_main PRIVATE
+    PICO_MAX_SHARED_IRQ_HANDLERS=5
 )
 
-# pull in common dependencies
-target_link_libraries(magneto_remote_main
-        pico_stdlib
+# Pull in common dependencies
+target_link_libraries(magneto_main 
+    pico_cyw43_arch_lwip_threadsafe_background
+    pico_stdlib
+    hardware_adc
+    gy511_lib
 )
 
-add_compile_definitions(CYW43_LWIP=1
-    PICO_MAX_SHARED_IRQ_HANDLERS=8
-)
+link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)
 
-# link_directories(${PICO_SDK_PATH}/src/rp2_common/pico_cyw43_arch)
+# Create map/bin/hex file etc.
+pico_add_extra_outputs(magneto_main)
 
-# create map/bin/hex file etc.
-pico_add_extra_outputs(magneto_remote_main)
-
-# enable usb output, disable uart output
-pico_enable_stdio_usb(magneto_remote_main 1)
-pico_enable_stdio_uart(magneto_remote_main 1)
+# Enable USB output, disable UART output
+pico_enable_stdio_usb(magneto_main 1)
+pico_enable_stdio_uart(magneto_main 1)
