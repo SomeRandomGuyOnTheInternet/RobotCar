@@ -343,7 +343,7 @@ void reset_button_task(void *params)
 int barcode_init()
 {
     initialize_barcode_pin();
-    // initialize_reset_button();
+    // init_reset_button();
 
     // Create a binary semaphore
     barcode_semaphore = xSemaphoreCreateBinary();
@@ -355,10 +355,9 @@ int barcode_init()
 
     is_scanning_allowed = true;
 
-    // Create FreeRTOS tasks
+    // // Create FreeRTOS tasks
     xTaskCreate(barcode_scanning_task, "Barcode Scanning Task", 1024, NULL, 1, NULL);
-    xTaskCreate(reset_button_task, "ResetButtonTask", 1024, NULL, 1, NULL);
-    gpio_set_irq_enabled_with_callback(IR_SENSOR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_isr_handler);
+    // xTaskCreate(reset_button_task, "ResetButtonTask", 1024, NULL, 1, NULL);
 
     return 0;
 }

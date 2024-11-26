@@ -22,10 +22,12 @@
 
 #define MAIN_BTN_PIN 20
 #define CONDITION_MOTOR_BTN_PIN 21
+#define RESET_BARCODE_BTN_PIN 22
 
 int NO_TASK = 0;
 int MAIN_TASK = 1;
 int CONDITION_MOTOR_TASK = 2;
+int RESET_BARCODE_TASK = 3;
 
 // Global variables to track tasks
 int current_task = 0;
@@ -55,6 +57,10 @@ void driver_callbacks(uint gpio, uint32_t events)
     case ECHOPIN:
         read_echo_pulse(ECHOPIN, events);
         break;
+    // IR sensor callback
+    case IR_SENSOR_PIN:
+        gpio_isr_handler(IR_SENSOR_PIN, events);
+        break;
     default:
         break;
     }
@@ -69,14 +75,19 @@ void task_btn_callbacks(uint gpio, uint32_t events)
     {
         switch (gpio)
         {
-        // Left wheel encoder callback
+        // Main task button callback
         case MAIN_BTN_PIN:
             xQueueSendFromISR(button_queue, &MAIN_TASK, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             break;
-        // Right wheel encoder callback
+        // Condition motor button callback
         case CONDITION_MOTOR_BTN_PIN:
             xQueueSendFromISR(button_queue, &CONDITION_MOTOR_TASK, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            break;
+        // Reset barcode button callback
+        case RESET_BARCODE_BTN_PIN:
+            xQueueSendFromISR(button_queue, &RESET_BARCODE_TASK, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             break;
         default:
@@ -103,10 +114,10 @@ void init_drivers()
     printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
-    // // Initialise barcode sensor
-    // barcode_init();
-    // printf("[MAIN/START] Barcode pins initialised\n");
-    // sleep_ms(500);
+    // Initialise barcode sensor
+    barcode_init();
+    printf("[MAIN/START] Barcode pins initialised\n");
+    sleep_ms(500);
 }
 
 void init_buttons()
@@ -119,8 +130,13 @@ void init_buttons()
     gpio_set_dir(CONDITION_MOTOR_BTN_PIN, GPIO_IN);
     gpio_pull_up(CONDITION_MOTOR_BTN_PIN);
 
+    // gpio_init(RESET_BARCODE_BTN_PIN);
+    // gpio_set_dir(RESET_BARCODE_BTN_PIN, GPIO_IN);
+    // gpio_pull_up(RESET_BARCODE_BTN_PIN);
+
     gpio_set_irq_enabled_with_callback(MAIN_BTN_PIN, GPIO_IRQ_EDGE_FALL, true, &task_btn_callbacks);
     gpio_set_irq_enabled_with_callback(CONDITION_MOTOR_BTN_PIN, GPIO_IRQ_EDGE_FALL, true, &task_btn_callbacks);
+    // gpio_set_irq_enabled_with_callback(RESET_BARCODE_BTN_PIN, GPIO_IRQ_EDGE_FALL, true, &task_btn_callbacks);
 
     button_queue = xQueueCreate(10, sizeof(int));
     if (button_queue == NULL)
@@ -139,7 +155,22 @@ void init_interrupts()
     gpio_set_irq_enabled_with_callback(ECHOPIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(L_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
     gpio_set_irq_enabled_with_callback(R_ENCODER_OUT, GPIO_IRQ_EDGE_RISE, true, &driver_callbacks);
+    gpio_set_irq_enabled_with_callback(IR_SENSOR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &driver_callbacks);
     printf("[MAIN/START] Interrupts initialised\n");
+}
+
+void reset_barcode_task()
+{
+    while (1)
+    {
+        if (gpio_get(RESET_BARCODE_BTN_PIN) == 0)
+        {
+            printf("Reset button pressed! Resetting barcode data...\n");
+            reset_barcode_data();
+            vTaskDelay(pdMS_TO_TICKS(500));
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
 
 void motor_conditioning_task()
@@ -335,6 +366,10 @@ void task_manager()
                 {
                     xTaskCreate(motor_conditioning_task, "Motor Conditioning", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
+                // else if (selected_task == RESET_BARCODE_TASK)
+                // {
+                //     xTaskCreate(reset_barcode_task, "Reset Barcode", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
+                // }
 
                 current_task = selected_task;
                 printf("[MAIN/TASK] Task for button %d started.\n", current_task);
