@@ -37,7 +37,7 @@ QueueHandle_t button_queue;
 int rcvd_direction = NEUTRAL;
 int rcvd_turn_direction = NEUTRAL;
 float rcvd_target_speed = 0.00f;
-float rcvd_direction_offset = 0.00f;
+float rcvd_turn_offset = 0.00f;
 
 void driver_callbacks(uint gpio, uint32_t events)
 {
@@ -171,23 +171,23 @@ void process_magneto_data(int x, int y)
     if (x > 0 && x <= MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = RIGHT;
-        rcvd_direction_offset = x / MAGNETO_MAX_SLICES;
+        rcvd_turn_offset = x / MAGNETO_MAX_SLICES;
     }
     else if (x < 0 && x >= -MAGNETO_MAX_SLICES)
     {
         rcvd_turn_direction = LEFT;
-        rcvd_direction_offset = abs(x) / MAGNETO_MAX_SLICES;
+        rcvd_turn_offset = abs(x) / MAGNETO_MAX_SLICES;
     }
     else
     {
         rcvd_turn_direction = NEUTRAL;
-        rcvd_direction_offset = 0.0f;
+        rcvd_turn_offset = 0.0f;
     }
 
     // printf("[MAIN/MAGNETO] Direction: %s\n", (rcvd_direction == FORWARDS) ? "FORWARDS" : (rcvd_direction == BACKWARDS) ? "BACKWARDS" : "NEUTRAL");
     // printf("[MAIN/MAGNETO] Turn direction: %s\n", (rcvd_turn_direction == RIGHT) ? "RIGHT" : (rcvd_turn_direction == LEFT) ? "LEFT" : "NEUTRAL");
     // printf("[MAIN/MAGNETO] Target Speed: %f\n", rcvd_target_speed);
-    // printf("[MAIN/MAGNETO] Direction Offset: %f\n", rcvd_direction_offset);
+    // printf("[MAIN/MAGNETO] Direction Offset: %f\n", rcvd_turn_offset);
 }
 
 int get_tcp_magneto_data()
@@ -235,6 +235,13 @@ void main_task()
     {
         get_tcp_magneto_data();
 
+        if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
+        {
+            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+            stop_motor_manual();
+            continue;
+        }
+
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
             // printf("[MAIN] Stopping\n");
@@ -246,15 +253,7 @@ void main_task()
             if (rcvd_direction == FORWARDS)
             {
                 // printf("[MAIN] Moving forwards\n");
-                if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
-                {
-                    printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-                    stop_motor_manual();
-                }
-                else
-                {
-                    forward_motor_pid(rcvd_target_speed);
-                }
+                forward_motor_pid(rcvd_target_speed);
             }
             else if (rcvd_direction == BACKWARDS)
             {
@@ -278,15 +277,7 @@ void main_task()
         else
         {
             // printf("[MAIN] Moving straight and turning\n");
-            if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
-            {
-                printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-                stop_motor_manual();
-            }
-            else
-            {
-                offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
-            }
+            offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));
