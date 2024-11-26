@@ -226,6 +226,7 @@ void main_task()
 {
     init_interrupts();
     init_server();
+    barcode_init();
 
     printf("[MAIN] Starting test\n");
 

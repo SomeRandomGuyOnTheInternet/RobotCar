@@ -343,7 +343,7 @@ void reset_button_task(void *params)
 int barcode_init()
 {
     initialize_barcode_pin();
-    // initialize_reset_button();
+    init_reset_button();
 
     // Create a binary semaphore
     barcode_semaphore = xSemaphoreCreateBinary();
