@@ -337,7 +337,7 @@ int init_server()
 }
 
 char* get_tcp_last_rcvd() {
-    TCP_printf("Message received:\n%s", last_recvd_data);
+    // TCP_printf("Message received:\n%s", last_recvd_data);
     char* str = (char*)malloc(BUF_SIZE + 1);
     if (!str) {
         return NULL; // Memory allocation failed

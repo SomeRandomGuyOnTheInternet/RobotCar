@@ -103,6 +103,7 @@ void init_drivers()
     printf("[MAIN/START] Ultrasonic pins initialised\n");
     sleep_ms(500);
 
+    // // Initialise barcode sensor
     // barcode_init();
     // printf("[MAIN/START] Barcode pins initialised\n");
     // sleep_ms(500);
@@ -232,6 +233,15 @@ void main_task()
 
     while (1)
     {
+        if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
+        {
+            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+            stop_motor_manual();
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            printf("[MAIN] Resuming movement.\n");
+            continue;
+        }
+
         get_tcp_magneto_data();
 
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
@@ -270,14 +280,6 @@ void main_task()
         {
             // printf("[MAIN] Moving straight and turning\n");
             offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
-        }
-
-        if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
-        {
-            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-            stop_motor_manual();
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            printf("[MAIN] Resuming movement.\n");
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));

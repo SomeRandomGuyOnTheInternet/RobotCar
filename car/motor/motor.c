@@ -267,21 +267,21 @@ void pid_task(void *params)
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();
             float average_speed = get_average_speed();
-            printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
+            // printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
 
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
 
             if (average_speed < JUMPSTART_SPEED_THRESHOLD)
             {
-                // // printf("[PID] Jumpstarting motors.\n");
+                // printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_JUMPSTART;
                 pid_pwm_right = PWM_JUMPSTART;
                 jumpstarted = true;
             }
             else
             {
-                // // printf("[PID] Normal motor operation.\n");
+                // printf("[PID] Normal motor operation.\n");
                 if (pid_pwm_left < PWM_MIN_LEFT || jumpstarted)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
