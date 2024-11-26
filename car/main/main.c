@@ -129,7 +129,7 @@ void init_buttons()
             ; // Halt if queue creation fails
     }
 
-    // printf("[MAIN/START] Task buttons initialised\n");
+    printf("[MAIN/START] Task buttons initialised\n");
 }
 
 void init_interrupts()
@@ -208,12 +208,12 @@ int get_tcp_magneto_data()
         }
         else
         {
-            printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
+            // printf("[MAIN/MAGNETO] Failed to parse values from the data.\n");
         }
     }
     else
     {
-        printf("[MAIN/MAGNETO] No data received yet.\n");
+        // printf("[MAIN/MAGNETO] No data received yet.\n");
     }
 
     free((void *)data);
@@ -353,6 +353,10 @@ int main()
     init_buttons();
 
     xTaskCreate(task_manager, "Task Manager", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, NULL);
+
+    printf("[MAIN/START] Press button GPIO %d to start main task\n", MAIN_BTN_PIN);
+    printf("[MAIN/START] Press button GPIO %d to start motor conditioning task\n", CONDITION_MOTOR_BTN_PIN);
+    printf("============\n");
 
     // Start FreeRTOS scheduler
     vTaskStartScheduler();
