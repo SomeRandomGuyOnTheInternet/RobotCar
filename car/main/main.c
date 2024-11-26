@@ -239,6 +239,7 @@ void main_task()
         {
             printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
             stop_motor_manual();
+            vTaskDelay(pdMS_TO_TICKS(200));
             continue;
         }
 
