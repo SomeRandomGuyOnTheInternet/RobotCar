@@ -94,6 +94,8 @@ float get_speed(Encoder *encoder)
         double count_diff = data.pulse_count - last_data.pulse_count;
         double time_diff = ((int64_t)data.timestamp - (int64_t)last_data.timestamp) / 1000000.0f;
         double now_time_diff = (double)(time_us_64() - data.timestamp) / 1000000.0f;
+        
+        // printf("[SPEED] Count diff: %f, Time diff: %f, Now time diff: %f\n", count_diff, time_diff, now_time_diff);
 
         if (time_diff > 0.0f && now_time_diff < 1.0f)
         {

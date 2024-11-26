@@ -24,6 +24,7 @@ void reset_barcode_data();                               // Function to reset ba
 char decode_scanned_bars();                              // Function to decode scanned bars
 void capture_barcode_signal();                           // Function to read from ADC
 void barcode_irq_handler(uint gpio, uint32_t events); // Interrupt callback function
+void gpio_isr_handler(uint gpio, uint32_t events);
 int barcode_init();                  
 
 extern char decoded_barcode_char;             // Character variable to store scanned and parsed barcode character
