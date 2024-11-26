@@ -290,7 +290,10 @@ void capture_barcode_signal()
                 // TODO: Backup car..
             }
             // Reset barcode after reading a character
+            printf("Resetting barcode data...\n");
             reset_barcode_data();
+            // vTaskDelay(pdMS_TO_TICKS(2000));
+            printf("Resetted barcode data\n");
         }
     }
     // Update last state change time after all computations are completed

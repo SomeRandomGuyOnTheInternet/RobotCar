@@ -158,7 +158,7 @@ char* gy511_read_data() {
     gy511_get_data(&x, &y, &z, &fixed_x, &fixed_y); 
 
     // Calculate percentages 
-    float percentage_x = (fixed_x / 1.0f) * 100.0f; // Adjust denominator as needed 
+    float percentage_x = (fixed_x / 3.0f) * 100.0f; // Adjust denominator as needed 
     float percentage_y = (fixed_y / 3.0f) * 100.0f; // Adjust denominator as needed 
 
     // Determine directions 
@@ -232,7 +232,7 @@ void run_tcp_client_test(void) {
             }
         }
 
-        sleep_ms(1000); // Send data every 2 seconds
+        sleep_ms(100); // Send data every 2 seconds
     }
 
     free(state);
