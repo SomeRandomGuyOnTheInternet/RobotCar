@@ -167,8 +167,8 @@ void reset_right_encoder()
 
 void reset_encoders()
 {
-    reset_left_encoder();
-    reset_right_encoder();
+    reset_encoder((Encoder *)&left_encoder);
+    reset_encoder((Encoder *)&right_encoder);
 }
 
 // Initialize encoders
