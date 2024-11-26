@@ -11,8 +11,8 @@
 #include "queue.h"
 #include "barcode.h"
 
-#define WIFI_SSID "some phone"
-#define WIFI_PASSWORD "password"
+#define WIFI_SSID "kam"
+#define WIFI_PASSWORD "hakambingpassword"
 
 #define TCP_PORT 5000
 #define CLIENT_SERVER_IP "172.20.10.2" // Replace with IP of dashboard pico

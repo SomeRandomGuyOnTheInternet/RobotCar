@@ -7,8 +7,8 @@
 #include "gy511.h"
 #include "tcp_client.h"
 
-#define WIFI_SSID "some phone"
-#define WIFI_PASSWORD "password"
+#define WIFI_SSID "kam"
+#define WIFI_PASSWORD "hakambingpassword"
 
 // Define BUF_SIZE if not defined
 #define BUF_SIZE 2048 
