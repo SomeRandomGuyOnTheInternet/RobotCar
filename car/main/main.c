@@ -233,15 +233,6 @@ void main_task()
 
     while (1)
     {
-        if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
-        {
-            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-            stop_motor_manual();
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            printf("[MAIN] Resuming movement.\n");
-            continue;
-        }
-
         get_tcp_magneto_data();
 
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
@@ -255,7 +246,15 @@ void main_task()
             if (rcvd_direction == FORWARDS)
             {
                 // printf("[MAIN] Moving forwards\n");
-                forward_motor_pid(rcvd_target_speed);
+                if (get_obstacle_distance() <= OBSTACLE_DISTANCE)
+                {
+                    printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                    stop_motor_manual();
+                }
+                else
+                {
+                    forward_motor_pid(rcvd_target_speed);
+                }
             }
             else if (rcvd_direction == BACKWARDS)
             {
@@ -279,7 +278,15 @@ void main_task()
         else
         {
             // printf("[MAIN] Moving straight and turning\n");
-            offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
+            if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
+            {
+                printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                stop_motor_manual();
+            }
+            else
+            {
+                offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_direction_offset);
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));
