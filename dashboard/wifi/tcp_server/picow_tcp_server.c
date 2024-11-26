@@ -17,7 +17,7 @@
 #define WIFI_PASSWORD "password"
 
 #define TCP_PORT 5001
-#define DEBUG_// printf // printf
+#define DEBUG_printf printf
 #define BUF_SIZE 2048 // Constraint for fixed buffer size
 #define POLL_TIME_S 5
 
@@ -32,7 +32,7 @@ typedef struct TCP_SERVER_T_ {
 static TCP_SERVER_T* tcp_server_init(void) {
     TCP_SERVER_T *state = calloc(1, sizeof(TCP_SERVER_T));
     if (!state) {
-        DEBUG_// printf("Failed to allocate state\n");
+        //DEBUG_// printf("Failed to allocate state\n");
         return NULL;
     }
     return state;
@@ -48,7 +48,7 @@ static err_t tcp_server_close(void *arg) {
         tcp_err(state->client_pcb, NULL);
         err = tcp_close(state->client_pcb);
         if (err != ERR_OK) {
-            DEBUG_// printf("Close failed %d, calling abort\n", err);
+            //DEBUG_// printf("Close failed %d, calling abort\n", err);
             tcp_abort(state->client_pcb);
             err = ERR_ABRT;
         }
@@ -60,9 +60,9 @@ static err_t tcp_server_close(void *arg) {
 static err_t tcp_server_result(void *arg, int status) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
     if (status == 0) {
-        DEBUG_// printf("Test success\n");
+        //DEBUG_// printf("Test success\n");
     } else {
-        DEBUG_// printf("Test failed %d\n", status);
+        //DEBUG_// printf("Test failed %d\n", status);
     }
     state->complete = true; // This might not be necessary if you're not terminating
     // Optionally keep the server running
@@ -74,7 +74,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
     if (!p) {
         // A NULL pbuf indicates a disconnection
-        DEBUG_// printf("Client disconnected or error occurred.\n");
+        //DEBUG_// printf("Client disconnected or error occurred.\n");
         tcp_server_close(arg); // Optionally handle client disconnection
         return ERR_OK; // Don't treat this as an error
     }
@@ -103,7 +103,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
         } else {
             state->buffer_recv[BUF_SIZE - 1] = '\0'; // Safety null-termination
         }
-        DEBUG_// printf("Message received from client: \n%s", state->buffer_recv);
+        DEBUG_printf("Message received from client: \n%s", state->buffer_recv);
 
     }
 
@@ -125,21 +125,21 @@ static err_t tcp_server_poll(void *arg, struct tcp_pcb *tpcb) {
 static void tcp_server_err(void *arg, err_t err) {
     // Handle the error but do not terminate the server
     if (err == ERR_CLSD) {
-        DEBUG_// printf("Client disconnected gracefully.\n");
+        //DEBUG_// printf("Client disconnected gracefully.\n");
         // Optionally, you can reset the client PCB and prepare for new connections here
     } else if (err != ERR_ABRT) {
-        DEBUG_// printf("tcp_client_err_fn %d\n", err);
+        //DEBUG_// printf("tcp_client_err_fn %d\n", err);
     }
 }
 
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
     if (err != ERR_OK || client_pcb == NULL) {
-        DEBUG_// printf("Failure in accept\n");
+        //DEBUG_// printf("Failure in accept\n");
         tcp_server_result(arg, err);
         return ERR_VAL;
     }
-    DEBUG_// printf("Client connected\n");
+    //DEBUG_// printf("Client connected\n");
 
     state->client_pcb = client_pcb;
     tcp_arg(client_pcb, state);
@@ -159,19 +159,19 @@ static bool tcp_server_open(void *arg) {
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb) {
-        DEBUG_// printf("Failed to create pcb\n");
+        //DEBUG_// printf("Failed to create pcb\n");
         return false;
     }
 
     err_t err = tcp_bind(pcb, NULL, TCP_PORT);
     if (err) {
-        DEBUG_// printf("Failed to bind to port %u\n", TCP_PORT);
+        //DEBUG_// printf("Failed to bind to port %u\n", TCP_PORT);
         return false;
     }
 
     state->server_pcb = tcp_listen_with_backlog(pcb, 1);
     if (!state->server_pcb) {
-        DEBUG_// printf("Failed to listen\n");
+        //DEBUG_// printf("Failed to listen\n");
         if (pcb) {
             tcp_close(pcb);
         }
