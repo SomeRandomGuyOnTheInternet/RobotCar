@@ -19,6 +19,7 @@
 #include "ultrasonic.h"
 #include "tcp_server.h"
 #include "barcode.h"
+#include "line_following.h"
 
 #define MAIN_BTN_PIN 20
 #define CONDITION_MOTOR_BTN_PIN 21
@@ -32,6 +33,7 @@ int RESET_BARCODE_TASK = 3;
 // Global variables to track tasks
 int current_task = 0;
 TaskHandle_t current_task_handle = NULL;
+TaskHandle_t line_following_handle = NULL;
 QueueHandle_t button_queue;
 
 #define MAGNETO_MAX_SLICES 3
@@ -99,6 +101,11 @@ void task_btn_callbacks(uint gpio, uint32_t events)
 // Function to init all sensors and motors
 void init_drivers()
 {
+    // Initialize line sensor
+    init_line_sensor();
+    printf("[MAIN/START] Line sensor initialized\n");
+    sleep_ms(500);
+
     // Initialise encoder sensor
     encoder_init();
     printf("[MAIN/START] Encoder pins initialised\n");
@@ -264,67 +271,89 @@ void main_task()
 
     while (1)
     {
-        get_tcp_magneto_data();
+        // If line following is not active, use magnetometer control
+        if (line_following_handle == NULL) {
+            get_tcp_magneto_data();
 
-        if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
-        {
-            printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+            // Check for obstacles during magnetometer control
+            if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
+            {
+                printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                stop_motor_manual();
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;
+            }
+
+            // Read line sensor to check if we should start line following
+            uint16_t sensor_value = adc_read();
+            
+            // If black line detected and moving forward, start line following
+            if (sensor_value > LINE_THRESHOLD) {
+                printf("[MAIN] Black line detected, starting line following\n");
+                xTaskCreate(lineFollowTask, "Line Follow Task", 1024, NULL, 1, &line_following_handle);
+                continue;  // Skip magnetometer control
+            }
+
+            // Handle magnetometer control
+            if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
+            {
+                printf("[MAIN] Moving straight\n");
+                if (rcvd_direction == FORWARDS)
+                {
+                    printf("[MAIN] Moving forwards\n");
+                    forward_motor_pid(rcvd_target_speed);
+                }
+                else if (rcvd_direction == BACKWARDS)
+                {
+                    printf("[MAIN] Moving backwards\n");
+                    reverse_motor_pid(rcvd_target_speed);
+                }
+            }
+            else if (rcvd_direction == NEUTRAL && rcvd_turn_direction != NEUTRAL)
+            {
+                if (rcvd_turn_direction == LEFT)
+                {
+                    printf("[MAIN] Moving left\n");
+                    turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
+                }
+                else if (rcvd_turn_direction == RIGHT)
+                {
+                    printf("[MAIN] Moving right\n");
+                    turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
+                }
+            }
+            else if (rcvd_direction != NEUTRAL && rcvd_turn_direction != NEUTRAL)
+            {
+                printf("[MAIN] Moving straight and turning\n");
+                offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
+            }
+            else {
+                stop_motor_pid();
+            }
+        }
+        // During line following, only check for obstacles
+        else if (get_obstacle_distance() <= OBSTACLE_DISTANCE) {
+            printf("[MAIN] Obstacle detected during line following at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
             stop_motor_manual();
             vTaskDelay(pdMS_TO_TICKS(2000));
-            continue;
-        }
-
-        if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
-        {
-            printf("[MAIN] Stopping\n");
-            stop_motor_pid();
-        }
-        else if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
-        {
-            printf("[MAIN] Moving straight\n");
-            if (rcvd_direction == FORWARDS)
-            {
-                printf("[MAIN] Moving forwards\n");
-                forward_motor_pid(rcvd_target_speed);
-            }
-            else if (rcvd_direction == BACKWARDS)
-            {
-                printf("[MAIN] Moving backwards\n");
-                reverse_motor_pid(rcvd_target_speed);
-            }
-        }
-        else if (rcvd_direction == NEUTRAL && rcvd_turn_direction != NEUTRAL)
-        {
-            if (rcvd_turn_direction == LEFT)
-            {
-                printf("[MAIN] Moving left\n");
-                turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
-            }
-            else if (rcvd_turn_direction == RIGHT)
-            {
-                printf("[MAIN] Moving right\n");
-                turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
-            }
-        }
-        else
-        {
-            printf("[MAIN] Moving straight and turning\n");
-            offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    stop_motor_manual(); // Stop after reaching target distance
-
-    current_task = NO_TASK; // Reset global state
+    stop_motor_manual();
+    current_task = NO_TASK;
     current_task_handle = NULL;
-    vTaskDelete(NULL); // Delete the current task
+    vTaskDelete(NULL);
 }
 
 void reset_tasks()
 {
     stop_motor_manual();
+    if (line_following_handle != NULL) {
+        vTaskDelete(line_following_handle);
+        line_following_handle = NULL;
+    }
     vTaskDelete(current_task_handle);
     current_task_handle = NULL;
     current_task = NO_TASK;
@@ -366,7 +395,7 @@ void task_manager()
                 {
                     xTaskCreate(motor_conditioning_task, "Motor Conditioning", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
-                // else if (selected_task == RESET_BARCODE_TASK)
+                 // else if (selected_task == RESET_BARCODE_TASK)
                 // {
                 //     xTaskCreate(reset_barcode_task, "Reset Barcode", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 // }
