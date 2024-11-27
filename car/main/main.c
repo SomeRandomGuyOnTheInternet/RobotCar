@@ -161,16 +161,9 @@ void init_interrupts()
 
 void reset_barcode_task()
 {
-    while (1)
-    {
-        if (gpio_get(RESET_BARCODE_BTN_PIN) == 0)
-        {
-            printf("Reset button pressed! Resetting barcode data...\n");
-            reset_barcode_data();
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
+    printf("Reset button pressed! Resetting barcode data...\n");
+    reset_barcode_data();
+    vTaskDelay(pdMS_TO_TICKS(500));
 }
 
 void motor_conditioning_task()
@@ -261,6 +254,7 @@ void main_task()
     printf("[MAIN] Starting test\n");
 
     stop_motor_manual();
+    reset_encoders();
 
     while (1)
     {
@@ -276,20 +270,20 @@ void main_task()
 
         if (rcvd_direction == NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            printf("[MAIN] Stopping\n");
+            // printf("[MAIN] Stopping\n");
             stop_motor_pid();
         }
         else if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
         {
-            printf("[MAIN] Moving straight\n");
+            // printf("[MAIN] Moving straight\n");
             if (rcvd_direction == FORWARDS)
             {
-                printf("[MAIN] Moving forwards\n");
+                // printf("[MAIN] Moving forwards\n");
                 forward_motor_pid(rcvd_target_speed);
             }
             else if (rcvd_direction == BACKWARDS)
             {
-                printf("[MAIN] Moving backwards\n");
+                // printf("[MAIN] Moving backwards\n");
                 reverse_motor_pid(rcvd_target_speed);
             }
         }
@@ -297,20 +291,22 @@ void main_task()
         {
             if (rcvd_turn_direction == LEFT)
             {
-                printf("[MAIN] Moving left\n");
+                // printf("[MAIN] Moving left\n");
                 turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
             }
             else if (rcvd_turn_direction == RIGHT)
             {
-                printf("[MAIN] Moving right\n");
+                // printf("[MAIN] Moving right\n");
                 turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
             }
         }
         else
         {
-            printf("[MAIN] Moving straight and turning\n");
+            // printf("[MAIN] Moving straight and turning\n");
             offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
         }
+
+        send_decoded_data_to_server("Hello from Pico!");
 
         vTaskDelay(pdMS_TO_TICKS(50));
     }
