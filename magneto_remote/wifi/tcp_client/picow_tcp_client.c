@@ -17,10 +17,10 @@
 #include "lwip/tcp.h"
 #include "gy511.h" // Include your GY-511 header file
 
-#define WIFI_SSID "some phone"
-#define WIFI_PASSWORD "password"
+#define WIFI_SSID "kam"
+#define WIFI_PASSWORD "hakambingpassword"
 
-#define SERVER_IP "172.20.10.4" // Replace with IP of car pico
+#define SERVER_IP "172.20.10.6" // Replace with IP of car pico
 #define SERVER_PORT 5000 // Replace with your server's port
 
 #define TCP_PORT 5000
