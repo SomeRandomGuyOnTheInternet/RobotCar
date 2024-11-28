@@ -190,12 +190,12 @@ void process_magneto_data(int x, int y)
     if (y > 0 && y <= MAGNETO_MAX_SLICES)
     {
         rcvd_direction = FORWARDS;
-        rcvd_target_speed = 40 + ((MAX_SPEED - MIN_SPEED) * (y / MAGNETO_MAX_SLICES));
+        rcvd_target_speed = 30 + ((MAX_SPEED - MIN_SPEED) * (y / MAGNETO_MAX_SLICES));
     }
     else if (y < 0 && y >= -MAGNETO_MAX_SLICES)
     {
         rcvd_direction = BACKWARDS;
-        rcvd_target_speed = 40 + ((MAX_SPEED - MIN_SPEED) * (abs(y) / MAGNETO_MAX_SLICES));
+        rcvd_target_speed = 30 + ((MAX_SPEED - MIN_SPEED) * (abs(y) / MAGNETO_MAX_SLICES));
     }
     else
     {
@@ -272,13 +272,15 @@ void main_task()
 
     while (1)
     {
+        double obstacle_distance = get_obstacle_distance();
+
         // If line following is not active, use magnetometer control
         if (line_following_handle == NULL)
         {
             get_tcp_magneto_data();
 
             // Check for obstacles during magnetometer control
-            if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
+            if (rcvd_direction == FORWARDS && obstacle_distance <= OBSTACLE_DISTANCE)
             {
                 stop_motor_manual();
                 printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
@@ -338,6 +340,18 @@ void main_task()
                 stop_motor_pid();
             }
         }
+        // else
+        // {
+        //     if (obstacle_distance <= OBSTACLE_DISTANCE)
+        //     {
+        //         stop_motor_manual();
+        //         printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+        //         sprintf(result, "Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+        //         send_decoded_data_to_server(result);
+        //         vTaskDelay(pdMS_TO_TICKS(2000));
+        //         continue;
+        //     }
+        // }
 
         // Print for debugging
         // printf("Sending data to server.\n");

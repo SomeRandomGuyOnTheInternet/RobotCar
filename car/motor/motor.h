@@ -27,7 +27,7 @@
 
 #define PWM_MIN 2100
 #define PWM_MIN_LEFT 2100
-#define PWM_MIN_RIGHT 1800
+#define PWM_MIN_RIGHT 1750
 #define PWM_MID 2800
 #define PWM_MID_LEFT 2800
 #define PWM_MID_RIGHT 2700

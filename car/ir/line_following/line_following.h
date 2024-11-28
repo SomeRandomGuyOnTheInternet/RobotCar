@@ -15,8 +15,8 @@
 
 // Define GPIO pins for line sensors
 #define LINE_SENSOR_PIN 28 // Define the GPIO pin for the line sensor
-#define STEER_DURATION 200
-#define LINE_THRESHOLD 280    // Define a custom threshold for line detection
+#define STEER_DURATION 213
+#define LINE_THRESHOLD 200    // Define a custom threshold for line detection
 #define DEBOUNCE_DELAY_MS 100 // 100 ms debounce delay
 #define TURNING_SPEED 2000       // Slower speed for turning
 
