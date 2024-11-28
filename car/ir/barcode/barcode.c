@@ -282,6 +282,7 @@ void capture_barcode_signal()
             {
                 // Invalid character scanned
                 printf("\nInvalid barcode character scanned! Backup car and reset all characters scanned so far..\n");
+                send_decoded_data_to_server("Invalid barcode character scanned! Backup car and reset all characters scanned so far..");
                 /* Prepare for next scan */
                 // Reset scan direction
                 is_scan_reversed = false;

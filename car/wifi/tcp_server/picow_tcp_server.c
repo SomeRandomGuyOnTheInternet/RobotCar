@@ -17,7 +17,9 @@
 #define TCP_PORT 5000
 #define CLIENT_SERVER_IP "172.20.10.2" // Replace with IP of dashboard pico
 #define CLIENT_SERVER_PORT 5001
-#define TCP_printf printf("[TCP] "); printf
+#define TCP_printf    \
+    printf("[TCP] "); \
+    printf
 #define BUF_SIZE 2048
 #define POLL_TIME_S 5
 
@@ -255,17 +257,28 @@ void send_gy511_data_to_server(const char *data)
     tcp_output(client_pcb);
 }
 
-void send_decoded_data_to_server(const char *data)
+int send_decoded_data_to_server(const char *data)
 {
-    // TCP_printf("Sending decoded data: %s\n", data);
-    if (client_pcb == NULL)
+    if (data != NULL && data[0] != '\0')
     {
-        // Handle error, as pcb_client is not initialized
-        return;
+        // TCP_printf("Sending decoded data: %s\n", data);
+        if (client_pcb == NULL)
+        {
+            // Handle error, as pcb_client is not initialized
+            return -1;
+        }
+        
+        // Send data using pcb_client
+        tcp_write(client_pcb, data, strlen(data), TCP_WRITE_FLAG_COPY);
+        tcp_output(client_pcb);
+
+        return 0;
     }
-    // Send data using pcb_client
-    tcp_write(client_pcb, data, strlen(data), TCP_WRITE_FLAG_COPY);
-    tcp_output(client_pcb);
+    else
+    {
+        printf("[TCP/SEND] No data to send.\n");
+        return -1;
+    }
 }
 
 // FreeRTOS task to run the TCP server
@@ -336,10 +349,12 @@ int init_server()
     return 0;
 }
 
-char* get_tcp_last_rcvd() {
+char *get_tcp_last_rcvd()
+{
     // TCP_printf("Message received:\n%s", last_recvd_data);
-    char* str = (char*)malloc(BUF_SIZE + 1);
-    if (!str) {
+    char *str = (char *)malloc(BUF_SIZE + 1);
+    if (!str)
+    {
         return NULL; // Memory allocation failed
     }
 

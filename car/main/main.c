@@ -43,6 +43,8 @@ int rcvd_turn_direction = NEUTRAL;
 float rcvd_target_speed = 0.00f;
 float rcvd_turn_offset = 0.00f;
 
+#define NUM_TICKS_PER_SEND_TCP 20
+
 void driver_callbacks(uint gpio, uint32_t events)
 {
     switch (gpio)
@@ -175,10 +177,12 @@ void reset_barcode_task()
 
 void motor_conditioning_task()
 {
+    send_decoded_data_to_server("Starting motor conditioning.");
     motor_conditioning();
     current_task = NO_TASK; // Reset global state
     current_task_handle = NULL;
     vTaskDelete(NULL); // Delete the current task
+    send_decoded_data_to_server("Motor conditioning complete.");
 }
 
 void process_magneto_data(int x, int y)
@@ -258,48 +262,56 @@ void main_task()
     init_interrupts();
     init_server();
 
-    printf("[MAIN] Starting test\n");
+    char *result = (char *)malloc(BUF_SIZE + 1); // Allocate a buffer for the full message (adjust size as needed)
+    int num_ticks = 0;
 
     stop_motor_manual();
     reset_encoders();
 
+    send_decoded_data_to_server("Starting main task.");
+
     while (1)
     {
         // If line following is not active, use magnetometer control
-        if (line_following_handle == NULL) {
+        if (line_following_handle == NULL)
+        {
             get_tcp_magneto_data();
 
             // Check for obstacles during magnetometer control
             if (rcvd_direction == FORWARDS && get_obstacle_distance() <= OBSTACLE_DISTANCE)
             {
-                printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
                 stop_motor_manual();
+                printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                sprintf(result, "Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                send_decoded_data_to_server(result);
                 vTaskDelay(pdMS_TO_TICKS(2000));
                 continue;
             }
 
             // Read line sensor to check if we should start line following
             uint16_t sensor_value = adc_read();
-            
+
             // If black line detected and moving forward, start line following
-            if (sensor_value > LINE_THRESHOLD) {
+            if (sensor_value > LINE_THRESHOLD)
+            {
                 printf("[MAIN] Black line detected, starting line following\n");
+                send_decoded_data_to_server("Black line detected, starting line following.");
                 xTaskCreate(lineFollowTask, "Line Follow Task", 1024, NULL, 1, &line_following_handle);
-                continue;  // Skip magnetometer control
+                continue; // Skip magnetometer control
             }
 
             // Handle magnetometer control
             if (rcvd_direction != NEUTRAL && rcvd_turn_direction == NEUTRAL)
             {
-                printf("[MAIN] Moving straight\n");
+                // printf("[MAIN] Moving straight\n");
                 if (rcvd_direction == FORWARDS)
                 {
-                    printf("[MAIN] Moving forwards\n");
+                    // printf("[MAIN] Moving forwards\n");
                     forward_motor_pid(rcvd_target_speed);
                 }
                 else if (rcvd_direction == BACKWARDS)
                 {
-                    printf("[MAIN] Moving backwards\n");
+                    // printf("[MAIN] Moving backwards\n");
                     reverse_motor_pid(rcvd_target_speed);
                 }
             }
@@ -307,33 +319,41 @@ void main_task()
             {
                 if (rcvd_turn_direction == LEFT)
                 {
-                    printf("[MAIN] Moving left\n");
+                    // printf("[MAIN] Moving left\n");
                     turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
                 }
                 else if (rcvd_turn_direction == RIGHT)
                 {
-                    printf("[MAIN] Moving right\n");
+                    // printf("[MAIN] Moving right\n");
                     turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
                 }
             }
-            else if (rcvd_direction != NEUTRAL && rcvd_turn_direction != NEUTRAL)
+            else if (rcvd_direction == FORWARDS && rcvd_turn_direction != NEUTRAL)
             {
-                printf("[MAIN] Moving straight and turning\n");
+                // printf("[MAIN] Moving straight and turning\n");
                 offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
             }
-            else {
+            else
+            {
                 stop_motor_pid();
             }
         }
-        // During line following, only check for obstacles
-        else if (get_obstacle_distance() <= OBSTACLE_DISTANCE) {
-            printf("[MAIN] Obstacle detected during line following at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-            stop_motor_manual();
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            continue;
-        }
 
-        // send_decoded_data_to_server("Hello from Pico!");
+        // Print for debugging
+        // printf("Sending data to server.\n");
+        if (num_ticks >= NUM_TICKS_PER_SEND_TCP)
+        {
+            printf("[MAIN] Sending data to server.\n");
+            sprintf(result, "Average distance: %.2f cm, average speed: %.2f cm/s\n",
+                    get_average_distance(),
+                    get_average_speed());
+            send_decoded_data_to_server(result);
+            num_ticks = 0;
+        }
+        else
+        {
+            num_ticks++;
+        }
 
         vTaskDelay(pdMS_TO_TICKS(50));
     }
@@ -347,7 +367,8 @@ void main_task()
 void reset_tasks()
 {
     stop_motor_manual();
-    if (line_following_handle != NULL) {
+    if (line_following_handle != NULL)
+    {
         vTaskDelete(line_following_handle);
         line_following_handle = NULL;
     }
@@ -392,7 +413,7 @@ void task_manager()
                 {
                     xTaskCreate(motor_conditioning_task, "Motor Conditioning", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 }
-                 // else if (selected_task == RESET_BARCODE_TASK)
+                // else if (selected_task == RESET_BARCODE_TASK)
                 // {
                 //     xTaskCreate(reset_barcode_task, "Reset Barcode", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &current_task_handle);
                 // }
