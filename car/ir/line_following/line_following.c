@@ -64,7 +64,7 @@ void line_follow_turn_motor(int direction, uint64_t steer_duration)
 void lineFollowTask(void *pvParameters)
 {
     uint64_t last_transition_time = 0;
-    int initial_turn_direction = 1;                   
+    int initial_turn_direction = 0;                   
     int alternate_turn_direction = 1 - initial_turn_direction; // Opposite direction for the second turn
     bool needs_second_turn = false;
     uint64_t initial_steer_duration = STEER_DURATION;
@@ -98,7 +98,7 @@ void lineFollowTask(void *pvParameters)
                 forward_motor_pid(MAX_SPEED);
 
                 // Reset steering durations, turn directions, and counters on line detection
-                initial_turn_direction = 1; // Randomize the initial turn again
+                initial_turn_direction = 0; // Randomize the initial turn again
                 alternate_turn_direction = 1 - initial_turn_direction;
                 initial_steer_duration = STEER_DURATION;
                 second_steer_duration = initial_steer_duration + 20;

@@ -190,12 +190,12 @@ void process_magneto_data(int x, int y)
     if (y > 0 && y <= MAGNETO_MAX_SLICES)
     {
         rcvd_direction = FORWARDS;
-        rcvd_target_speed = 30 + ((MAX_SPEED - MIN_SPEED) * (y / MAGNETO_MAX_SLICES));
+        rcvd_target_speed = MIN_SPEED + ((MAX_SPEED - MIN_SPEED) * (y / MAGNETO_MAX_SLICES));
     }
     else if (y < 0 && y >= -MAGNETO_MAX_SLICES)
     {
         rcvd_direction = BACKWARDS;
-        rcvd_target_speed = 30 + ((MAX_SPEED - MIN_SPEED) * (abs(y) / MAGNETO_MAX_SLICES));
+        rcvd_target_speed = MIN_SPEED + ((MAX_SPEED - MIN_SPEED) * (abs(y) / MAGNETO_MAX_SLICES));
     }
     else
     {
@@ -262,7 +262,7 @@ void main_task()
     init_interrupts();
     init_server();
 
-    char *result = (char *)malloc(BUF_SIZE + 1); // Allocate a buffer for the full message (adjust size as needed)
+    char *data_to_send = (char *)malloc(BUF_SIZE + 1); // Allocate a buffer for the full message (adjust size as needed)
     int num_ticks = 0;
 
     stop_motor_manual();
@@ -284,8 +284,8 @@ void main_task()
             {
                 stop_motor_manual();
                 printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-                sprintf(result, "Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-                send_decoded_data_to_server(result);
+                sprintf(data_to_send, "Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
+                send_decoded_data_to_server(data_to_send);
                 vTaskDelay(pdMS_TO_TICKS(2000));
                 continue;
             }
@@ -335,33 +335,15 @@ void main_task()
                 // printf("[MAIN] Moving straight and turning\n");
                 offset_move_motor(rcvd_direction, rcvd_turn_direction, rcvd_turn_offset);
             }
-            else
-            {
-                stop_motor_pid();
-            }
         }
-        // else
-        // {
-        //     if (obstacle_distance <= OBSTACLE_DISTANCE)
-        //     {
-        //         stop_motor_manual();
-        //         printf("[MAIN] Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-        //         sprintf(result, "Obstacle detected at %f cm. Stopping.\n", OBSTACLE_DISTANCE);
-        //         send_decoded_data_to_server(result);
-        //         vTaskDelay(pdMS_TO_TICKS(2000));
-        //         continue;
-        //     }
-        // }
 
         // Print for debugging
         // printf("Sending data to server.\n");
         if (num_ticks >= NUM_TICKS_PER_SEND_TCP)
         {
             printf("[MAIN] Sending data to server.\n");
-            sprintf(result, "Average distance: %.2f cm, average speed: %.2f cm/s\n",
-                    get_average_distance(),
-                    get_average_speed());
-            send_decoded_data_to_server(result);
+            sprintf(data_to_send, "Average distance: %.2f cm, average speed: %.2f cm/s, obstacle distance: %.2f cm\n", get_average_distance(), get_average_speed(), obstacle_distance);
+            send_decoded_data_to_server(data_to_send);
             num_ticks = 0;
         }
         else
