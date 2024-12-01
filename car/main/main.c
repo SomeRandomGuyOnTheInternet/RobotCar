@@ -177,12 +177,12 @@ void reset_barcode_task()
 
 void motor_conditioning_task()
 {
-    send_decoded_data_to_server("Starting motor conditioning.");
+    // send_decoded_data_to_server("Starting motor conditioning.");
     motor_conditioning();
     current_task = NO_TASK; // Reset global state
     current_task_handle = NULL;
     vTaskDelete(NULL); // Delete the current task
-    send_decoded_data_to_server("Motor conditioning complete.");
+    // send_decoded_data_to_server("Motor conditioning complete.");
 }
 
 void process_magneto_data(int x, int y)
@@ -322,12 +322,12 @@ void main_task()
                 if (rcvd_turn_direction == LEFT)
                 {
                     // printf("[MAIN] Moving left\n");
-                    turn_motor_manual(LEFT, CONTINUOUS, PWM_TURN, PWM_TURN);
+                    turn_motor_manual(LEFT, CONTINUOUS_TURN, PWM_TURN, PWM_TURN);
                 }
                 else if (rcvd_turn_direction == RIGHT)
                 {
                     // printf("[MAIN] Moving right\n");
-                    turn_motor_manual(RIGHT, CONTINUOUS, PWM_TURN, PWM_TURN);
+                    turn_motor_manual(RIGHT, CONTINUOUS_TURN, PWM_TURN, PWM_TURN);
                 }
             }
             else if (rcvd_direction == FORWARDS && rcvd_turn_direction != NEUTRAL)

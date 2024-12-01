@@ -40,7 +40,7 @@ void line_follow_turn_motor(int direction, uint64_t steer_duration)
     int motor_direction = (direction == 0) ? LEFT : RIGHT;
     
     // Use turn_motor_manual with continuous turning and fixed PWM values
-    turn_motor_manual(motor_direction, CONTINUOUS, 2000, 2000);
+    turn_motor_manual(motor_direction, CONTINUOUS_TURN, 2000, 2000);
 
     uint64_t start_time = time_us_64();
     uint64_t max_turn_duration = steer_duration * 1000; // Convert ms to microseconds

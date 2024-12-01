@@ -68,31 +68,28 @@ void ultrasonic_task(void *params)
 {
     while (1)
     {
-        // for (int i = 0; i < 5; i++)
-        // {
-            // Trigger the ultrasonic sensor
-            send_echo_pulse();
+        // Trigger the ultrasonic sensor
+        send_echo_pulse();
 
-            // Wait for pulse completion
-            if (xSemaphoreTake(pulse_semaphore, pdMS_TO_TICKS(50)) == pdTRUE) // 50ms timeout
-            {
-                // Calculate distance from pulse length
-                double measured = (pulse_length / 29.0 / 2.0) - 1;
+        // Wait for pulse completion
+        if (xSemaphoreTake(pulse_semaphore, pdMS_TO_TICKS(50)) == pdTRUE) // 50ms timeout
+        {
+            // Calculate distance from pulse length
+            double measured = (pulse_length / 29.0 / 2.0) - 1;
 
-                // Apply Kalman filter for stability
-                kalman_update(kalman_filter, measured);
+            // Apply Kalman filter for stability
+            kalman_update(kalman_filter, measured);
 
-                // Update the global distance variable
-                latest_distance = kalman_filter->x;
-            }
-            else
-            {
-                // printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
-            }
+            // Update the global distance variable
+            latest_distance = kalman_filter->x;
+        }
+        else
+        {
+            // printf("[ULTRASONIC] Ultrasonic sensor timeout or no pulse detected.\n");
+        }
 
-            // Delay to control the measurement rate (e.g., 10 Hz)
-            vTaskDelay(pdMS_TO_TICKS(10)); // 100ms delay
-        // }
+        // Delay to control the measurement rate (e.g., 10 Hz)
+        vTaskDelay(pdMS_TO_TICKS(10)); // 100ms delay
     }
 }
 

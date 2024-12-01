@@ -36,8 +36,8 @@ typedef struct {
 } EncoderData;
 
 typedef struct {
-    EncoderData data;
-    EncoderData last_data;
+    volatile EncoderData data;
+    volatile EncoderData last_data;
     SemaphoreHandle_t mutex;
 } Encoder;
 

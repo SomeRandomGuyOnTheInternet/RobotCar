@@ -1,17 +1,9 @@
 #include "motor.h"
 
-// PID control variables
-float integral_left = 0.0;
-float integral_right = 0.0;
-float prev_error_left = 0.0;
-float prev_error_right = 0.0;
-
-static float pid_pwm_left = PWM_MIN_LEFT;
-static float pid_pwm_right = PWM_MIN_RIGHT;
-
-static float target_speed = MIN_SPEED;
 static bool use_pid_control = false;
 static PIDState pid_state = DISABLED;
+static float target_speed = MIN_SPEED;
+static float target_turn_angle = CONTINUOUS_TURN;
 
 // Function to move motors forward
 void forward_motor(float new_pwm_left, float new_pwm_right)
@@ -48,7 +40,7 @@ void reverse_motor(float new_pwm_left, float new_pwm_right)
 }
 
 // Function to turn
-void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_right)
+void turn_motor(int direction, float new_pwm_left, float new_pwm_right)
 {
     pwm_set_chan_level(pwm_gpio_to_slice_num(L_MOTOR_ENA), pwm_gpio_to_channel(L_MOTOR_ENA), (uint16_t)new_pwm_left);
     pwm_set_chan_level(pwm_gpio_to_slice_num(R_MOTOR_ENB), pwm_gpio_to_channel(R_MOTOR_ENB), (uint16_t)new_pwm_right);
@@ -78,21 +70,6 @@ void turn_motor(int direction, float angle, float new_pwm_left, float new_pwm_ri
         // Enable the enable pins
         gpio_put(L_MOTOR_ENA, 1);
         gpio_put(R_MOTOR_ENB, 1);
-    }
-
-    if (angle != CONTINUOUS)
-    {
-        reset_encoders();
-        int target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
-        while (target_distance - get_average_distance() > 0)
-        {
-            vTaskDelay(pdMS_TO_TICKS(10)); // Delay to periodically check distance
-        }
-        if (use_pid_control)
-        {
-            printf("[TURN] Turn target distance reached on PID. Stopping.\n");
-            stop_motor_pid();
-        }
     }
 }
 
@@ -145,7 +122,15 @@ void reverse_motor_manual(float new_pwm_left, float new_pwm_right)
 void turn_motor_manual(int direction, float angle, float new_pwm_left, float new_pwm_right)
 {
     disable_pid_control();
-    turn_motor(direction, angle, new_pwm_left, new_pwm_right);
+    turn_motor(direction, new_pwm_left, new_pwm_right);
+    if (angle != CONTINUOUS_TURN)
+    {
+        reset_encoders();
+        while (turn_until_angle(angle))
+        {
+            vTaskDelay(pdMS_TO_TICKS(10)); // Delay to periodically check distance
+        }
+    }
     // printf("[MOTOR/MANUAL] Turning %s with PWM Left: %f, Right: %f\n", (direction == LEFT) ? "left" : "right", new_pwm_left, new_pwm_right);
 }
 
@@ -215,10 +200,11 @@ void reverse_motor_pid(float new_target_speed)
     // printf("[PID] PID reverse.\n");
 }
 
-void turn_motor_pid(int direction, float new_target_speed)
+void turn_motor_pid(int direction, float new_target_speed, float new_target_turn_angle)
 {
     enable_pid_control();
     target_speed = new_target_speed;
+    target_turn_angle = new_target_turn_angle;
     pid_state = (direction == LEFT) ? LEFT_TURN : RIGHT_TURN;
     // printf("[PID] PID %s turn.\n", (direction == LEFT) ? "left" : "right");
 }
@@ -231,6 +217,35 @@ void stop_motor_pid()
     pid_state = STOP;
     enable_pid_control();
     // printf("[PID] PID stop.\n");
+}
+
+// Must call turn motor and reset encoders before calling this function
+bool turn_until_angle(float angle)
+{
+    if (angle == CONTINUOUS_TURN)
+    {
+        return true;
+    }
+    if (angle < 0.0f || angle > FULL_CIRCLE)
+    {
+        return false;
+    }
+
+    float target_distance = (angle / FULL_CIRCLE) * (PI * WHEEL_TO_WHEEL_DISTANCE);
+    if (target_distance - get_average_distance() <= 0.05)
+    {
+        if (use_pid_control)
+        {
+            stop_motor_pid();
+        }
+        else
+        {
+            stop_motor_manual();
+        }
+        return false;
+    }
+
+    return true;
 }
 
 // PID Computation
@@ -248,6 +263,15 @@ float compute_pid_pwm(float target_speed, float current_value, float *integral, 
 // PID Task
 void pid_task(void *params)
 {
+    // PID control variables
+    float integral_left = 0.0;
+    float integral_right = 0.0;
+    float prev_error_left = 0.0;
+    float prev_error_right = 0.0;
+
+    float pid_pwm_left = PWM_MIN_LEFT;
+    float pid_pwm_right = PWM_MIN_RIGHT;
+
     bool jumpstarted = false;
 
     while (1)
@@ -266,13 +290,12 @@ void pid_task(void *params)
 
             float left_speed = get_left_speed();
             float right_speed = get_right_speed();
-            float average_speed = get_average_speed();
-            // printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f, Average Speed: %.2f\n", target_speed, left_speed, right_speed, average_speed);
+            // printf("[PID/VALIDATED] Target Speed: %.2f, Left Speed: %.2f, Right Speed: %.2f\n", target_speed, left_speed, right_speed);
 
             pid_pwm_left += compute_pid_pwm(target_speed, left_speed, &integral_left, &prev_error_left);
             pid_pwm_right += compute_pid_pwm(target_speed, right_speed, &integral_right, &prev_error_right);
 
-            if (average_speed < JUMPSTART_SPEED_THRESHOLD)
+            if (left_speed < JUMPSTART_SPEED_THRESHOLD || right_speed < JUMPSTART_SPEED_THRESHOLD)
             {
                 // printf("[PID] Jumpstarting motors.\n");
                 pid_pwm_left = PWM_JUMPSTART;
@@ -286,19 +309,19 @@ void pid_task(void *params)
                 {
                     pid_pwm_left = PWM_MIN_LEFT;
                 }
-                if (pid_pwm_left > PWM_MAX)
+                else if (pid_pwm_left > PWM_MAX)
                 {
                     pid_pwm_left = PWM_MAX;
                 }
-
-                if (pid_pwm_right < PWM_MIN_RIGHT || jumpstarted)
+                else if (pid_pwm_right < PWM_MIN_RIGHT || jumpstarted)
                 {
                     pid_pwm_right = PWM_MIN_RIGHT;
                 }
-                if (pid_pwm_right > PWM_MAX)
+                else if (pid_pwm_right > PWM_MAX)
                 {
                     pid_pwm_right = PWM_MAX;
                 }
+
                 jumpstarted = false;
             }
 
@@ -313,10 +336,19 @@ void pid_task(void *params)
                 reverse_motor(pid_pwm_left, pid_pwm_right);
                 break;
             case LEFT_TURN:
-                turn_motor(LEFT, CONTINUOUS, pid_pwm_left, pid_pwm_right);
+                turn_motor(LEFT, pid_pwm_left, pid_pwm_right);
+                if (target_turn_angle != CONTINUOUS_TURN)
+                    reset_encoders();
+                pid_state = TURNING;
                 break;
             case RIGHT_TURN:
-                turn_motor(RIGHT, CONTINUOUS, pid_pwm_left, pid_pwm_right);
+                turn_motor(RIGHT, pid_pwm_left, pid_pwm_right);
+                if (target_turn_angle != CONTINUOUS_TURN)
+                    reset_encoders();
+                pid_state = TURNING;
+                break;
+            case TURNING:
+                turn_until_angle(target_turn_angle);
                 break;
             case STOP:
                 stop_motor();
